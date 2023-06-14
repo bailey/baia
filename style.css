@@ -1,0 +1,19 @@
+header {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    color: blueviolet;
+    margin: 20vh;
+}
+
+h1 {
+    font-size: 200%;
+
+}
+
+h2 {
+    font-size: small;
+}
+
+body {
+    background-color: aliceblue;
+    text-align: center;
+}
