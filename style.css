@@ -1,19 +1,111 @@
 header {
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    color: blueviolet;
+    font-family: 'Lilita One', 'VT323', 'Arial Narrow', Arial, sans-serif;
+    color: #9193ff;
+    font-size: 144px;
     margin: 20vh;
 }
 
-h1 {
-    font-size: 200%;
-
-}
+.marquee {
+    position: relative;
+    width: 100vw;
+    max-width: 100%;
+    height: 200px;
+    overflow-x: hidden;
+  }
+  
+.track {
+    position: absolute;
+    white-space: nowrap;
+    will-change: transform;
+    animation: marquee 4s linear infinite;
+  }
+  
+@keyframes marquee {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+  }
 
 h2 {
     font-size: small;
 }
 
+.nav {
+  font-family: 'Lilita One', 'VT323', 'Arial Narrow', Arial, sans-serif;
+  text-align: left;
+  font-size: 50px;
+}
+
+a {
+  color:aliceblue;
+  text-decoration: none;
+}
+
+a:hover {
+  color:#9193ff;
+  font-style: italic;
+  text-decoration: blue wavy underline;
+}
+
 body {
-    background-color: aliceblue;
-    text-align: center;
+	background: linear-gradient(-45deg, aliceblue, #ffeec6, #96ddea, #91ffd6);
+	background-size: 400% 400%;
+	animation: gradient 15s ease infinite;
+	height: 100vh;
+  text-align: center;
+}
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+.container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -64.5px;
+  margin-top: -85.5px;
+}
+
+.ghost {
+  animation: float 3s ease-out infinite;
+}
+
+@keyframes float {
+  50% {
+     transform: translate(0, 20px);
+  }
+}
+.shadowFrame {
+  width: 130px;
+  margin-top: 15px;
+}
+.shadow {
+  animation: shrink 3s ease-out infinite;
+  transform-origin: center center;
+  ellipse {
+    transform-origin: center center;
+  }
+}
+
+@keyframes shrink {
+  0% {
+    width: 60%;
+    margin: 0 18%;
+  }
+  50% {
+    width: 90%;
+    margin: 0 5%;
+  }
+  100% {
+    width: 60%;
+    margin: 0 18%;
+  }
 }
