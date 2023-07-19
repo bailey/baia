@@ -1,10 +1,11 @@
+/* index.html */
+
 header {
     font-family: 'Lilita One', 'VT323', 'Arial Narrow', Arial, sans-serif;
     color: #9193ff;
     font-size: 144px;
     margin: 20vh;
 }
-
 .marquee {
     position: relative;
     width: 100vw;
@@ -12,40 +13,33 @@ header {
     height: 200px;
     overflow-x: hidden;
   }
-  
 .track {
     position: absolute;
     white-space: nowrap;
     will-change: transform;
     animation: marquee 4s linear infinite;
-  }
-  
+  } 
 @keyframes marquee {
     from { transform: translateX(100%); }
     to { transform: translateX(-100%); }
   }
-
 h2 {
     font-size: small;
 }
-
 .nav {
   font-family: 'Lilita One', 'VT323', 'Arial Narrow', Arial, sans-serif;
   text-align: left;
   font-size: 50px;
 }
-
 a {
   color:aliceblue;
   text-decoration: none;
 }
-
 a:hover {
   color:#9193ff;
   font-style: italic;
   text-decoration: blue wavy underline;
 }
-
 body {
 	background: linear-gradient(-45deg, aliceblue, #ffeec6, #96ddea, #91ffd6);
 	background-size: 400% 400%;
@@ -53,7 +47,6 @@ body {
 	height: 100vh;
   text-align: center;
 }
-
 @keyframes gradient {
 	0% {
 		background-position: 0% 50%;
@@ -65,7 +58,6 @@ body {
 		background-position: 0% 50%;
 	}
 }
-
 .container {
   position: absolute;
   top: 50%;
@@ -73,11 +65,9 @@ body {
   margin-left: -64.5px;
   margin-top: -85.5px;
 }
-
 .ghost {
   animation: float 3s ease-out infinite;
 }
-
 @keyframes float {
   50% {
      transform: translate(0, 20px);
@@ -94,7 +84,6 @@ body {
     transform-origin: center center;
   }
 }
-
 @keyframes shrink {
   0% {
     width: 60%;
