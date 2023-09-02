@@ -2,9 +2,10 @@
     "name": "baia",
     "version": "1.0.0",
     "scripts": {
-        "run": "python -m http.server"
+        "start": "http-server"
     },
     "dependencies": {
+        "http-server": "^14.1.1",
         "jquery": "^3.7.0",
         "js": "^0.1.0"
     }

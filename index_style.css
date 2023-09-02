@@ -4,7 +4,6 @@ header {
     font-family: 'Lilita One', 'VT323', 'Arial Narrow', Arial, sans-serif;
     color: #9193ff;
     font-size: 144px;
-    margin: 20vh;
 }
 .marquee {
     position: relative;
@@ -12,6 +11,7 @@ header {
     max-width: 100%;
     height: 200px;
     overflow-x: hidden;
+    margin-top: 12vh;
   }
 .track {
     position: absolute;
