@@ -11,13 +11,14 @@ h1 {
     font-size: 100px;
     margin-bottom: -2vh;
 }
+h1:hover{
+    text-decoration:underline;
+}
 .left {
     text-align: left;
-    margin-left: 15vh;
 }
 .right {
     text-align: right;
-    margin-right: 15vh;
 }
 a {
   color:aliceblue;
@@ -34,6 +35,9 @@ body {
 	animation: gradient 15s ease infinite;
 	height: 100vh;
     font-family: 'Karla';
+    font-size: larger;
+    margin-left: 20%;
+    margin-right: 20%;
 }
 @keyframes gradient {
 	0% {
@@ -50,5 +54,6 @@ body {
     font-family: 'Lilita One', 'VT323', 'Arial Narrow', Arial, sans-serif;
     text-align: left;
     font-size: 50px;
-    margin-top: -5vh;
+    margin-top: -6vh;
+    margin-left: -32%;
   }
