@@ -7,8 +7,7 @@ header {
 }
 .marquee {
     position: relative;
-    width: 100vw;
-    max-width: 100%;
+    width: 100vw; /* full viewport width */
     height: 200px;
     overflow-x: hidden;
     margin-top: 12vh;
@@ -17,12 +16,13 @@ header {
     position: absolute;
     white-space: nowrap;
     will-change: transform;
-    animation: marquee 4s linear infinite;
+    width: 200vw;
+    animation: marquee 8s linear infinite;
   } 
 @keyframes marquee {
-    from { transform: translateX(100%); }
-    to { transform: translateX(-100%); }
-  }
+  0% { transform: translateX(50%); } /* Start off-screen to the right */
+  100% { transform: translateX(-100%); } /* End off-screen to the left */
+}
 h2 {
     font-size: small;
 }
@@ -30,6 +30,7 @@ h2 {
   font-family: 'Lilita One', 'VT323', 'Arial Narrow', Arial, sans-serif;
   text-align: left;
   font-size: 50px;
+  margin: 8px;
 }
 a {
   color:aliceblue;
@@ -46,6 +47,7 @@ body {
 	animation: gradient 15s ease infinite;
 	height: 100vh;
   text-align: center;
+  margin: 0px;
 }
 @keyframes gradient {
 	0% {
