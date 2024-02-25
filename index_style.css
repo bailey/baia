@@ -100,3 +100,17 @@ body {
     margin: 0 18%;
   }
 }
+#cursorCircle {
+  width: 20px;
+  height: 20px;
+  fill: black;
+  background-color:#9193ff;
+  opacity: 50%;
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease, border-color 0.3s ease;
+  z-index: 9999;
+  display: none;
+}
