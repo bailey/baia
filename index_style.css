@@ -26,6 +26,12 @@ header {
 h2 {
     font-size: small;
 }
+a.three {
+  margin-top: -2vh;
+}
+a.three:hover {
+  filter: invert(50%);
+}
 .nav {
   font-family: 'Lilita One', 'VT323', 'Arial Narrow', Arial, sans-serif;
   text-align: left;
