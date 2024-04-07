@@ -37,6 +37,18 @@ a.three:hover {
   text-align: left;
   font-size: 50px;
   margin: 8px;
+  margin-top: 40px;
+}
+.navimg {
+  position: relative;
+  width: 15vw;
+}
+.navimg:hover {
+  width: 16vw;
+  /* margin-left: -1vw;
+  margin-right: -1vw; */
+  margin: -1vw;
+  box-shadow: #9193ff;
 }
 a {
   color:aliceblue;
