@@ -1,0 +1,64 @@
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/98.css"
+>
+
+
+
+<body style="background-color: darkcyan;">
+
+    <div class="window" style="width: 90vw; margin: 0 auto">
+        <div class="title-bar">
+          <div class="title-bar-text"><img src="assets/msn3.png" style="width:10; margin-left: 4px; margin-right: 5px;">leave a message</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimize"></button>
+            <button aria-label="Maximize"></button>
+            <button aria-label="Close"></button>
+          </div>
+        </div>
+        
+        <div class="window-body">
+          <p><b>welcome to my message board ✨</b></p>
+
+          <p>do you want to leave a message?</p>
+          <div class="field-row">
+            <input id="radio5" type="radio" name="first-example">
+            <label for="radio5">yes</label>
+          </div>
+          <div class="field-row">
+            <input id="radio6" type="radio" name="first-example">
+            <label for="radio6">yes</label>
+          </div>
+
+          <button style="margin-top:10px;">submit</button>
+
+          <p><br><b>good.</b> write your message below:</p>
+          <form id="guestForm">
+          <div class="field-row-stacked" style="width:88vw">
+            <label for="name">your name:</label>
+            <input id="name" type="text" />
+          </div>
+          <div class="field-row-stacked" style="width:88vw">
+            <label for="message">your message:</label>
+            <textarea id="message" rows="8"></textarea>
+          </div>
+          <button style="margin-top:10px;">submit</button>
+        </form>
+        </div>
+      </div>
+
+      <div class="window" style="width: 90vw; margin: 0 auto; margin-top: 10px;">
+        <div class="title-bar">
+          <div class="title-bar-text"><img src="assets/write_yellow.png" style="width:12; margin-left: 4px; margin-right: 5px;">past messages</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimize"></button>
+            <button aria-label="Maximize"></button>
+            <button aria-label="Close"></button>
+          </div>
+        </div>
+        <div class="window-body">
+            <div id="guestList"></div> 
+        </div>
+      </div>
+      <script src="guestbook.js"></script> 
+</body>
