@@ -40,10 +40,11 @@ a.three:hover {
   margin-top: 40px;
 }
 .navimg {
-  position: relative;
+  position:relative;
   width: 15vw;
 }
 .navimg:hover {
+  position:relative;
   width: 16vw;
   /* margin-left: -1vw;
   margin-right: -1vw; */
