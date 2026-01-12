@@ -37,6 +37,7 @@ a.three:hover {
   text-align: left;
   font-size: 50px;
   margin: 8px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 a {
   color:aliceblue;
@@ -48,7 +49,7 @@ a:hover {
   text-decoration: blue wavy underline;
 }
 body {
-	background: linear-gradient(-45deg, aliceblue, #ffeec6, #96ddea, #91ffd6);
+	background: linear-gradient(-45deg, aliceblue, #ffeec6, #F0EEE9, #e0faff);
 	background-size: 400% 400%;
 	animation: gradient 15s ease infinite;
 	height: 100vh;
