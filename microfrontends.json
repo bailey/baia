@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/microfrontends.json",
+  "version": "1",
+  "applications": {
+    "baia": {
+      "development": {
+        "fallback": "www.baia.dev"
+      }
+    },
+    "gameshelf": {
+      "development": {
+        "fallback": "gameshelf-plum.vercel.app"
+      },
+      "routing": [
+        {
+          "paths": ["/gamelib/:path*"]
+        }
+      ]
+    }
+  }
+}
