@@ -10,9 +10,10 @@
 <meta name="twitter:description" content="3D artist and developer. Check out GameShelf, my game collection as a physical shelf.">
 <meta name="twitter:image" content="https://baibrooks.com/assets/planet.png">
 <link rel="stylesheet" href="index_style.css">
-<script language="JavaScript" type="text/javascript" src="/node_modules/js/jquery-1.2.6.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Grotesk:wght@400;500;700&family=Space+Mono&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Grotesk:wght@400;700&display=swap">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <link rel="icon" type="image/x-icon" href="assets/planet.png">
 
 <div class="cursor-trail-layer" id="cursorTrailLayer" aria-hidden="true"></div>
@@ -104,6 +105,16 @@
     <section class="os-view" id="view-projects">
       <h2 class="os-view-header">// PROJECTS</h2>
       <div class="os-entry">
+        <a class="os-entry-title" href="/gamelib">gameshelf</a>
+        <p class="os-entry-desc">my game collection as a physical shelf</p>
+        <p class="os-entry-tags">three.js, react</p>
+      </div>
+      <div class="os-entry">
+        <a class="os-entry-title" href="https://baibrooks.com">this website</a>
+        <p class="os-entry-desc">yes, this one. you're standing in it right now</p>
+        <p class="os-entry-tags">vanilla js, three.js, spite</p>
+      </div>
+      <div class="os-entry">
         <a class="os-entry-title" href="https://bailey.github.io/gallery">the gallery</a>
         <p class="os-entry-desc">a three.js gallery where my blender models live</p>
         <p class="os-entry-tags">3d modeling in blender, three.js</p>
@@ -117,16 +128,6 @@
         <a class="os-entry-title" href="https://bailey.github.io/which-eevee-are-you/">the eevee quiz</a>
         <p class="os-entry-desc">find out which eevee you are :3</p>
         <p class="os-entry-tags">react</p>
-      </div>
-      <div class="os-entry">
-        <a class="os-entry-title" href="/gamelib">gameshelf</a>
-        <p class="os-entry-desc">my game collection as a physical shelf</p>
-        <p class="os-entry-tags">three.js, react</p>
-      </div>
-      <div class="os-entry">
-        <a class="os-entry-title" href="https://baibrooks.com">this website</a>
-        <p class="os-entry-desc">yes, this one. you're standing in it right now</p>
-        <p class="os-entry-tags">vanilla js, three.js, spite</p>
       </div>
     </section>
 
@@ -274,11 +275,12 @@
     <a class="os-tray-icon" data-umami-event="open-linkedin" href="https://linkedin.com/in/baileyebrooks"><img src="/assets/li.png" alt="LinkedIn"></a>
     <a class="os-tray-icon" data-umami-event="open-twitch" href="https://twitch.tv/baikat"><img src="/assets/twitch.png" alt="Twitch"></a>
     <a class="os-tray-icon" data-umami-event="open-twitter" href="https://twitter.com/notbaileybrooks"><img src="/assets/twitter.png" alt="Twitter"></a>
+    <a class="os-tray-icon" data-umami-event="open-github" href="https://github.com/bailey"><img src="/assets/github.png" alt="GitHub"></a>
   </div>
   <div class="os-status"><span class="os-pulse"></span><span id="osOnlineCount">1</span> ONLINE · <span id="osClock">--:--</span></div>
 </div>
 
 <div class="gameshelf-transition" id="gameshelfTransition" aria-hidden="true"></div>
 
-<script src="script.js"></script>
+<script defer src="script.js"></script>
 </body>
