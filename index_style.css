@@ -126,8 +126,8 @@ body.cursor-rainbow {
 }
 
 .os-icon-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
   color: #f2ecff;
   text-shadow: 0 2px 6px rgba(0,0,0,0.5);
   opacity: 0.85;
@@ -218,8 +218,8 @@ body.cursor-rainbow {
 }
 
 .os-titlebar-text {
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
   color: #f2ecff;
   letter-spacing: 0.12em;
 }
@@ -311,7 +311,7 @@ body.cursor-rainbow {
 }
 
 .os-view-header {
-  font-family: 'Space Mono', monospace;
+  font-family: 'VT323', monospace;
   font-size: 20px;
   font-weight: 400;
   color: #ffd166;
@@ -342,15 +342,15 @@ a.os-entry-title:hover {
 }
 
 .os-entry-desc {
-  font-family: 'Space Mono', monospace;
-  font-size: 12px;
+  font-family: 'VT323', monospace;
+  font-size: 14px;
   color: #d8cdf5;
   margin-top: 6px;
 }
 
 .os-entry-tags {
-  font-family: 'Space Mono', monospace;
-  font-size: 11px;
+  font-family: 'VT323', monospace;
+  font-size: 12px;
   color: #8577a3;
   margin-top: 4px;
 }
@@ -382,8 +382,8 @@ a.os-entry-title:hover {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
   letter-spacing: 0.06em;
   color: #f2ecff;
   cursor: pointer;
@@ -458,8 +458,8 @@ a.os-entry-title:hover {
   padding: 0 14px;
   display: flex;
   align-items: center;
-  font-family: 'Space Mono', monospace;
-  font-size: 12px;
+  font-family: 'VT323', monospace;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: #f2ecff;
@@ -489,8 +489,8 @@ a.os-entry-title:hover {
   display: flex;
   align-items: center;
   padding: 0 4px;
-  font-family: 'Space Mono', monospace;
-  font-size: 11px;
+  font-family: 'VT323', monospace;
+  font-size: 12px;
   letter-spacing: 0.14em;
   color: rgba(242, 236, 255, 0.4);
 }
@@ -535,8 +535,8 @@ a.os-entry-title:hover {
   border-radius: 8px;
   background: rgba(255,255,255,0.1);
   border: 1px solid rgba(255,255,255,0.18);
-  font-family: 'Space Mono', monospace;
-  font-size: 12px;
+  font-family: 'VT323', monospace;
+  font-size: 14px;
   color: #f2ecff;
   letter-spacing: 0.04em;
 }
@@ -563,8 +563,8 @@ a.os-entry-title:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
   color: #f2ecff;
 }
 
@@ -710,7 +710,7 @@ body.is-navigating > *:not(.gameshelf-transition) {
   flex: 0 0 auto;
   padding: 16px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.12);
-  font-family: 'Space Mono', monospace;
+  font-family: 'VT323', monospace;
   display: flex;
   align-items: baseline;
   gap: 10px;
@@ -738,13 +738,13 @@ body.is-navigating > *:not(.gameshelf-transition) {
 }
 
 .os-thewall-header span:first-child {
-  font-size: 15px;
+  font-size: 17px;
   color: #ffd166;
   letter-spacing: 0.06em;
 }
 
 .os-thewall-header-sub {
-  font-size: 12px;
+  font-size: 14px;
   color: #b3a8d1;
 }
 
@@ -753,8 +753,8 @@ body.is-navigating > *:not(.gameshelf-transition) {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
+  font-family: 'VT323', monospace;
+  font-size: 11px;
   letter-spacing: 0.1em;
   color: #7fffa0;
 }
@@ -769,8 +769,8 @@ body.is-navigating > *:not(.gameshelf-transition) {
 }
 
 .os-thewall-empty {
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
   color: #b3a8d1;
   text-align: center;
   padding: 20px 0;
@@ -778,8 +778,8 @@ body.is-navigating > *:not(.gameshelf-transition) {
 
 .os-thewall-entry {
   --wall-accent: #ffd166;
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
   line-height: 1.55;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -787,6 +787,30 @@ body.is-navigating > *:not(.gameshelf-transition) {
   background: rgba(10, 6, 16, 0.4);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
   padding: 10px 12px;
+  position: relative;
+}
+
+.os-thewall-delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  line-height: 16px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #cfc4e6;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.os-thewall-delete:hover {
+  background: #ff5e5e;
+  border-color: #ff5e5e;
+  color: #140e1a;
 }
 
 .os-thewall-entry-meta {
@@ -797,7 +821,7 @@ body.is-navigating > *:not(.gameshelf-transition) {
 
 .os-thewall-entry-time {
   color: #9d90bb;
-  font-size: 11px;
+  font-size: 12px;
   margin-left: 6px;
 }
 
@@ -829,17 +853,17 @@ body.is-navigating > *:not(.gameshelf-transition) {
 .os-thewall-row {
   display: flex;
   gap: 8px;
+  align-items: stretch;
 }
 
 .os-thewall-name {
-  width: 120px;
-  flex: 0 0 auto;
+  width: 100%;
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.18);
   border-radius: 6px;
   padding: 7px 10px;
-  font-family: 'Space Mono', monospace;
-  font-size: 12px;
+  font-family: 'VT323', monospace;
+  font-size: 14px;
   color: #f2ecff;
 }
 
@@ -850,26 +874,30 @@ body.is-navigating > *:not(.gameshelf-transition) {
 
 .os-thewall-submit {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: linear-gradient(120deg, #ffd166, #7c8cf0);
   border: none;
   border-radius: 6px;
-  padding: 7px 16px;
-  font-family: 'Space Mono', monospace;
-  font-size: 12px;
+  padding: 0 16px;
+  font-family: 'VT323', monospace;
+  font-size: 14px;
   font-weight: 700;
   color: #1c1226;
   cursor: pointer;
 }
 
 .os-thewall-message {
-  width: 100%;
+  flex: 1 1 auto;
+  width: auto;
   resize: vertical;
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.18);
   border-radius: 6px;
   padding: 8px 10px;
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
   color: #f2ecff;
 }
 
@@ -915,8 +943,8 @@ body.is-navigating > *:not(.gameshelf-transition) {
 .os-startmenu-banner-text {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font-family: 'Space Mono', monospace;
-  font-size: 11px;
+  font-family: 'VT323', monospace;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.16em;
   color: rgba(20, 14, 26, 0.8);
@@ -948,8 +976,8 @@ body.is-navigating > *:not(.gameshelf-transition) {
 }
 
 .os-startmenu-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
+  font-family: 'VT323', monospace;
+  font-size: 11px;
   letter-spacing: 0.1em;
   color: #8577a3;
   padding: 4px 14px 6px;
@@ -962,8 +990,8 @@ body.is-navigating > *:not(.gameshelf-transition) {
   background: none;
   border: none;
   padding: 8px 14px;
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
   color: #f2ecff;
   cursor: pointer;
 }
@@ -1093,16 +1121,16 @@ body.is-navigating > *:not(.gameshelf-transition) {
 }
 
 .os-toast-title {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
+  font-family: 'VT323', monospace;
+  font-size: 11px;
   letter-spacing: 0.12em;
   color: #ffd166;
   margin-bottom: 8px;
 }
 
 .os-toast-body {
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
   line-height: 1.5;
   color: #f2ecff;
 }
@@ -1183,16 +1211,16 @@ body.is-navigating > *:not(.gameshelf-transition) {
 }
 
 .os-modal-title {
-  font-family: 'Space Mono', monospace;
-  font-size: 12px;
+  font-family: 'VT323', monospace;
+  font-size: 14px;
   letter-spacing: 0.1em;
   color: #ffd166;
 }
 
 .os-modal-body {
   padding: 20px 22px 24px;
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
   line-height: 1.6;
   color: #f2ecff;
   white-space: pre-line;
@@ -1266,7 +1294,7 @@ body.is-navigating > *:not(.gameshelf-transition) {
 
 .os-genie-figure.is-visible {
   opacity: 1;
-  animation: os-genie-talk 1s steps(10) infinite;
+  animation: os-genie-talk 1.2s steps(10) infinite;
 }
 
 .os-genie-figure.is-centered {
@@ -1309,8 +1337,8 @@ body.is-navigating > *:not(.gameshelf-transition) {
 }
 
 .os-genie-line {
-  font-family: 'Space Mono', monospace;
-  font-size: 14px;
+  font-family: 'VT323', monospace;
+  font-size: 16px;
   line-height: 1.5;
   color: #f2ecff;
   min-height: 21px;
@@ -1334,8 +1362,8 @@ body.is-navigating > *:not(.gameshelf-transition) {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04));
   border: 1px solid rgba(255, 209, 102, 0.5);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -2px 4px rgba(0, 0, 0, 0.3), 0 2px 0 rgba(0, 0, 0, 0.35);
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
   color: #f2ecff;
   cursor: pointer;
   transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease, box-shadow 0.08s ease;
@@ -1383,8 +1411,8 @@ body.is-navigating > *:not(.gameshelf-transition) {
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.24);
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
-  font-family: 'Space Mono', monospace;
-  font-size: 14px;
+  font-family: 'VT323', monospace;
+  font-size: 16px;
   font-weight: 700;
   color: #f2ecff;
   letter-spacing: 0.02em;
@@ -1423,7 +1451,7 @@ body.is-navigating > *:not(.gameshelf-transition) {
 
   .os-menubar-label {
     padding: 0 9px;
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .os-menubar-status {

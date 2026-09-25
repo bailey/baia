@@ -744,6 +744,12 @@ const osGenieChoiceYes = document.getElementById("osGenieChoiceYes");
 const osGenieChoiceNo = document.getElementById("osGenieChoiceNo");
 let genieRunning = false;
 let genieDismissTimeout = null;
+let genieStage = 0;
+
+const GENIE_LINE_ASK = "you sure about that?";
+const GENIE_LINE_INTRO =
+  "oh! i'm the genie from barbie magic genie bottle, circa 2000. we use the LATEST tech and graphics technologies. quite ahead of it's time. thank you for asking.";
+const GENIE_LINE_BYE = "BACK TO THE BOTTLE";
 
 function spawnGenieSparkles(x, y) {
   const layer = document.getElementById("cursorTrailLayer");
@@ -778,13 +784,14 @@ function spawnGenieSparkles(x, y) {
 function triggerGenieEasterEgg() {
   if (!osGenieOverlay || genieRunning) return;
   genieRunning = true;
+  genieStage = 0;
 
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   if (prefersReducedMotion) {
     showOsModal(
       "THE GENIE",
-      "You sure about that?\n\n> Yes, Mr. Genie. (minimizes the window)\n> Wait, no— (nevermind)"
+      "you sure about that?\n\n> yes, mr. genie. (minimizes the window)\n> wait.. who are you? (nevermind)"
     );
     genieRunning = false;
     return;
@@ -801,18 +808,37 @@ function triggerGenieEasterEgg() {
   osGenieFigure.classList.add("is-visible");
   osGenieLine.textContent = "";
   osGenieDialogue.classList.remove("is-visible");
+  osGenieChoiceYes.style.display = "";
+  osGenieChoiceYes.textContent = "yes, mr. genie.";
+  osGenieChoiceNo.style.display = "";
+  osGenieChoiceNo.textContent = "wait.. who are you?";
 
   spawnGenieSparkles(cornerX, cornerY);
 
   setTimeout(() => osGenieFigure.classList.add("is-centered"), 350);
 
   setTimeout(() => {
-    osGenieLine.textContent = "You sure about that?";
+    osGenieLine.textContent = GENIE_LINE_ASK;
     osGenieDialogue.classList.add("is-visible");
   }, 1100);
 
   // safety net: if she's ignored entirely, quietly dismiss with no side effects
   genieDismissTimeout = setTimeout(() => resolveGenie(false), 12000);
+}
+
+function advanceGenieToIntro() {
+  clearTimeout(genieDismissTimeout);
+  genieStage = 1;
+  osGenieDialogue.classList.remove("is-visible");
+
+  setTimeout(() => {
+    osGenieLine.textContent = GENIE_LINE_INTRO;
+    osGenieChoiceYes.style.display = "none";
+    osGenieChoiceNo.textContent = "..oh?";
+    osGenieDialogue.classList.add("is-visible");
+  }, 200);
+
+  genieDismissTimeout = setTimeout(() => resolveGenieBye(), 12000);
 }
 
 function resolveGenie(shouldMinimize) {
@@ -833,11 +859,35 @@ function resolveGenie(shouldMinimize) {
   }
 }
 
+function resolveGenieBye() {
+  if (!genieRunning) return;
+  clearTimeout(genieDismissTimeout);
+
+  osGenieChoiceNo.style.display = "none";
+  osGenieLine.textContent = GENIE_LINE_BYE;
+
+  setTimeout(() => {
+    osGenieDialogue.classList.remove("is-visible");
+    osGenieFigure.classList.remove("is-centered", "is-visible");
+  }, 1200);
+
+  setTimeout(() => {
+    osGenieBottle.classList.remove("is-visible");
+    osGenieOverlay.classList.remove("is-active");
+    genieRunning = false;
+  }, 1700);
+}
+
 if (osGenieChoiceYes) {
-  osGenieChoiceYes.addEventListener("click", () => resolveGenie(true));
+  osGenieChoiceYes.addEventListener("click", () => {
+    if (genieStage === 0) resolveGenie(true);
+  });
 }
 if (osGenieChoiceNo) {
-  osGenieChoiceNo.addEventListener("click", () => resolveGenie(false));
+  osGenieChoiceNo.addEventListener("click", () => {
+    if (genieStage === 0) advanceGenieToIntro();
+    else if (genieStage === 1) resolveGenieBye();
+  });
 }
 
 // titlebar easter egg: expand triggers a glitchy square burst and a reality check
@@ -1337,6 +1387,28 @@ if (wallFeed && wallForm && wallView) {
   let knownIds = new Set();
   let hasLoadedOnce = false;
 
+  function loadMyTokens() {
+    try {
+      return JSON.parse(localStorage.getItem("thewallTokens") || "{}");
+    } catch {
+      return {};
+    }
+  }
+  function saveMyToken(id, token) {
+    try {
+      const tokens = loadMyTokens();
+      tokens[id] = token;
+      localStorage.setItem("thewallTokens", JSON.stringify(tokens));
+    } catch {}
+  }
+  function forgetMyToken(id) {
+    try {
+      const tokens = loadMyTokens();
+      delete tokens[id];
+      localStorage.setItem("thewallTokens", JSON.stringify(tokens));
+    } catch {}
+  }
+
   function formatTime(ts) {
     const d = new Date(ts);
     let hours = d.getHours();
@@ -1366,18 +1438,44 @@ if (wallFeed && wallForm && wallView) {
       wallFeed.innerHTML = '<div class="os-thewall-empty">no messages yet — be the first to post</div>';
       return;
     }
+    const myTokens = loadMyTokens();
     // feed is column-reverse, so newest-first array reads bottom-to-top visually
     wallFeed.innerHTML = messages
       .map((m) => {
         const name = m.name || "anonymous";
+        const canDelete = Boolean(myTokens[m.id]);
         return `
         <div class="os-thewall-entry" style="--wall-accent:${accentForName(name)}">
           <span class="os-thewall-entry-meta">${escapeHtml(name)}</span>
           <span class="os-thewall-entry-time">${formatTime(m.ts)}</span>
+          ${canDelete ? `<button class="os-thewall-delete" data-id="${escapeHtml(m.id)}" type="button" title="delete this post">✕</button>` : ""}
           <div class="os-thewall-entry-message">${escapeHtml(m.message)}</div>
         </div>`;
       })
       .join("");
+
+    wallFeed.querySelectorAll(".os-thewall-delete").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        const token = loadMyTokens()[id];
+        if (!id || !token) return;
+        btn.disabled = true;
+        try {
+          const res = await fetch("/api/messages", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, token }),
+          });
+          if (res.ok) {
+            forgetMyToken(id);
+            hasLoadedOnce = false;
+            await fetchMessages();
+          }
+        } catch (err) {
+          btn.disabled = false;
+        }
+      });
+    });
   }
 
   async function fetchMessages() {
@@ -1424,7 +1522,10 @@ if (wallFeed && wallForm && wallView) {
         }),
       });
       if (res.ok) {
+        const data = await res.json();
+        if (data.entry && data.token) saveMyToken(data.entry.id, data.token);
         wallMessage.value = "";
+        hasLoadedOnce = false;
         await fetchMessages();
       }
     } catch (err) {

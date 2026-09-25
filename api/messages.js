@@ -28,7 +28,10 @@ module.exports = async (req, res) => {
   if (req.method === "POST") {
     return handlePost(req, res);
   }
-  res.setHeader("Allow", "GET, POST");
+  if (req.method === "DELETE") {
+    return handleDelete(req, res);
+  }
+  res.setHeader("Allow", "GET, POST, DELETE");
   return res.status(405).json({ error: "method not allowed" });
 };
 
@@ -39,7 +42,9 @@ async function handleList(req, res) {
     // come back as objects (only fall back to manual parsing for safety).
     const messages = raw
       .map((entry) => (typeof entry === "string" ? safeParse(entry) : entry))
-      .filter(Boolean);
+      .filter(Boolean)
+      // token is the delete secret handed to the poster only — never echo it back
+      .map(({ token, ...rest }) => rest);
     res.setHeader("Cache-Control", "no-store");
     return res.status(200).json({ messages });
   } catch (err) {
@@ -78,14 +83,45 @@ async function handlePost(req, res) {
       name,
       message,
       ts: Date.now(),
+      token: Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10),
     };
 
     await redis.lpush(LIST_KEY, JSON.stringify(entry));
     await redis.ltrim(LIST_KEY, 0, MAX_STORED - 1);
 
-    return res.status(201).json({ ok: true, entry });
+    // give the poster their delete token, but never expose it via GET
+    const { token, ...publicEntry } = entry;
+    return res.status(201).json({ ok: true, entry: publicEntry, token });
   } catch (err) {
     return res.status(500).json({ error: "failed to post message" });
+  }
+}
+
+async function handleDelete(req, res) {
+  try {
+    const body = typeof req.body === "string" ? safeParse(req.body) : req.body;
+    const id = body && body.id;
+    const token = body && body.token;
+    if (!id || !token) {
+      return res.status(400).json({ error: "id and token are required" });
+    }
+
+    const raw = await redis.lrange(LIST_KEY, 0, MAX_STORED - 1);
+    const found = raw
+      .map((entry) => (typeof entry === "string" ? safeParse(entry) : entry))
+      .find((entry) => entry && entry.id === id);
+
+    if (!found) {
+      return res.status(404).json({ error: "message not found" });
+    }
+    if (found.token !== token) {
+      return res.status(403).json({ error: "not your message" });
+    }
+
+    await redis.lrem(LIST_KEY, 0, JSON.stringify(found));
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    return res.status(500).json({ error: "failed to delete message" });
   }
 }
 

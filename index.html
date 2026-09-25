@@ -65,19 +65,19 @@
     <span class="os-icon-label">HOME</span>
   </button>
   <button class="os-icon" type="button" data-window="projects" data-umami-event="open-projects">
-    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/projects-gotchi.png" alt=""></div></div></div>
+    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/projects-glassberry.png" alt=""></div></div></div>
     <span class="os-icon-label">PROJECTS</span>
   </button>
   <button class="os-icon" type="button" data-window="resume" data-umami-event="open-resume">
-    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/resume-strawberry.png" alt=""></div></div></div>
+    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/resume-robotdog.png" alt=""></div></div></div>
     <span class="os-icon-label">RESUME</span>
   </button>
   <button class="os-icon" type="button" data-window="thewall" data-umami-event="open-thewall">
-    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/wall-chatbox.png" alt=""></div></div></div>
+    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/wall-cyberkid.png" alt=""></div></div></div>
     <span class="os-icon-label">THE WALL</span>
   </button>
-  <a class="os-icon" id="gameshelfLink" href="https://gameshelf-plum.vercel.app" data-umami-event="open-gameshelf">
-    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/gameshelf-tulip.png" alt=""></div></div></div>
+  <a class="os-icon" id="gameshelfLink" href="/gamelib" data-umami-event="open-gameshelf">
+    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/gameshelf-controller.png" alt=""></div></div></div>
     <span class="os-icon-label">GAME SHELF</span>
   </a>
 </div>
@@ -119,7 +119,7 @@
         <p class="os-entry-tags">react</p>
       </div>
       <div class="os-entry">
-        <a class="os-entry-title" href="https://gameshelf-plum.vercel.app">gameshelf</a>
+        <a class="os-entry-title" href="/gamelib">gameshelf</a>
         <p class="os-entry-desc">my game collection as a physical shelf</p>
         <p class="os-entry-tags">three.js, react</p>
       </div>
@@ -177,25 +177,25 @@
           tabindex="-1"
           aria-hidden="true"
         >
+        <input
+          class="os-thewall-name"
+          type="text"
+          id="thewallName"
+          placeholder="name"
+          maxlength="24"
+          autocomplete="off"
+        >
         <div class="os-thewall-row">
-          <input
-            class="os-thewall-name"
-            type="text"
-            id="thewallName"
-            placeholder="name"
-            maxlength="24"
-            autocomplete="off"
-          >
+          <textarea
+            class="os-thewall-message"
+            id="thewallMessage"
+            placeholder="type a message..."
+            maxlength="280"
+            rows="2"
+            required
+          ></textarea>
           <button class="os-thewall-submit" type="submit">post &gt;</button>
         </div>
-        <textarea
-          class="os-thewall-message"
-          id="thewallMessage"
-          placeholder="type a message..."
-          maxlength="280"
-          rows="2"
-          required
-        ></textarea>
       </form>
     </section>
 
@@ -256,8 +256,8 @@
     <div class="os-genie-dialogue-inner">
       <div class="os-genie-line" id="osGenieLine"></div>
       <div class="os-genie-choice-list">
-        <button class="os-genie-choice" id="osGenieChoiceYes" type="button">Yes, Mr. Genie.</button>
-        <button class="os-genie-choice" id="osGenieChoiceNo" type="button">Wait, no—</button>
+        <button class="os-genie-choice" id="osGenieChoiceYes" type="button">yes, mr. genie.</button>
+        <button class="os-genie-choice" id="osGenieChoiceNo" type="button">wait.. who are you?</button>
       </div>
     </div>
   </div>
