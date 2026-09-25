@@ -599,40 +599,855 @@ if (document.readyState === "loading") {
   setTimeout(() => app.render(), 0);
 }
 
-// Custom cursor
-const cursor = document.getElementById("customCursor");
-let mouseX = 0;
-let mouseY = 0;
-let cursorX = 0;
-let cursorY = 0;
+// GameShelf nav link: animated navigation on plain left-click only
+const gameshelfLink = document.getElementById("gameshelfLink");
+const gameshelfTransition = document.getElementById("gameshelfTransition");
 
-document.addEventListener("mousemove", (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-});
+if (gameshelfLink && gameshelfTransition) {
+  gameshelfLink.addEventListener("click", (e) => {
+    // Let modified clicks / middle-click / etc. behave like a normal <a>
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+      return;
+    }
 
-let isCursorAnimating = false;
-function animateCursor() {
-  if (!isCursorAnimating) return;
-  cursorX = mouseX;
-  cursorY = mouseY;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    if (prefersReducedMotion) {
+      return;
+    }
 
-  cursor.style.display = "block";
-  cursor.style.left = cursorX + "px";
-  cursor.style.top = cursorY + "px";
+    e.preventDefault();
+    const destination = gameshelfLink.href;
 
-  requestAnimationFrame(animateCursor);
+    // Iris grows from wherever the link actually sits (varies by page/line)
+    const rect = gameshelfLink.getBoundingClientRect();
+    const originX = ((rect.left + rect.width / 2) / window.innerWidth) * 100;
+    const originY = ((rect.top + rect.height / 2) / window.innerHeight) * 100;
+    gameshelfTransition.style.setProperty("--iris-x", `${originX.toFixed(2)}%`);
+    gameshelfTransition.style.setProperty("--iris-y", `${originY.toFixed(2)}%`);
+
+    let navigated = false;
+    const goToGameshelf = () => {
+      if (navigated) return;
+      navigated = true;
+      window.location.href = destination;
+    };
+
+    gameshelfLink.classList.add("is-leaving");
+    gameshelfTransition.classList.add("is-active");
+    document.body.classList.add("is-navigating");
+
+    gameshelfTransition.addEventListener("transitionend", goToGameshelf, {
+      once: true,
+    });
+
+    // Fallback in case the transition never fires
+    setTimeout(goToGameshelf, 600);
+  });
 }
 
-document.addEventListener(
-  "mousemove",
-  () => {
-    if (!isCursorAnimating) {
-      isCursorAnimating = true;
-      cursor.style.display = "block";
-      animateCursor();
+// OS shell: desktop icons open a single floating window
+const osDesktopIcons = document.querySelectorAll(".os-icon[data-window]");
+const osWindow = document.getElementById("osWindow");
+const osWindowTitle = document.getElementById("osWindowTitle");
+const osWindowClose = document.getElementById("osWindowClose");
+const osWindowMinimize = document.getElementById("osWindowMinimize");
+const osWindowExpand = document.getElementById("osWindowExpand");
+const osTaskbarChip = document.getElementById("osTaskbarChip");
+const osViews = document.querySelectorAll(".os-view");
+
+const osWindowTitles = {
+  home: "ABOUT.TXT",
+  projects: "PROJECTS.SYS",
+  resume: "RESUME.SYS",
+  pong: "PONG.EXE",
+  thewall: "THE WALL.EXE",
+};
+
+function openOsWindow(name) {
+  osViews.forEach((view) =>
+    view.classList.toggle("is-active", view.id === `view-${name}`)
+  );
+  osDesktopIcons.forEach((i) =>
+    i.classList.toggle("is-active", i.getAttribute("data-window") === name)
+  );
+  osWindowTitle.textContent = `BAILEY // ${osWindowTitles[name] || "OS 2.0"}`;
+  osWindow.classList.add("is-open");
+  if (osTaskbarChip) {
+    osTaskbarChip.textContent = osWindowTitles[name] || name.toUpperCase();
+    osTaskbarChip.hidden = false;
+  }
+}
+
+function closeOsWindow() {
+  osWindow.classList.remove("is-open");
+  osDesktopIcons.forEach((i) => i.classList.remove("is-active"));
+  if (osTaskbarChip) osTaskbarChip.hidden = true;
+}
+
+// real minimize, now gated behind the genie's "Yes, Mr. Genie." dialogue choice
+function minimizeOsWindow() {
+  if (!osWindow.classList.contains("is-open")) return;
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prefersReducedMotion) {
+    closeOsWindow();
+    return;
+  }
+
+  osWindow.classList.add("is-minimizing");
+  osWindow.addEventListener(
+    "animationend",
+    () => {
+      osWindow.classList.remove("is-open", "is-minimizing");
+      osDesktopIcons.forEach((i) => i.classList.remove("is-active"));
+      if (osTaskbarChip) osTaskbarChip.hidden = true;
+    },
+    { once: true }
+  );
+}
+
+if (osDesktopIcons.length && osWindow) {
+  osDesktopIcons.forEach((icon) => {
+    icon.addEventListener("click", () => {
+      const target = icon.getAttribute("data-window");
+      const alreadyOpenOnThis =
+        osWindow.classList.contains("is-open") &&
+        icon.classList.contains("is-active");
+      if (alreadyOpenOnThis) {
+        closeOsWindow();
+      } else {
+        openOsWindow(target);
+      }
+    });
+  });
+
+  if (osWindowClose) {
+    osWindowClose.addEventListener("click", closeOsWindow);
+  }
+  if (osWindowMinimize) {
+    osWindowMinimize.addEventListener("click", triggerGenieEasterEgg);
+  }
+  if (osWindowExpand) {
+    osWindowExpand.addEventListener("click", () => triggerGlitchEasterEgg(osWindowExpand));
+  }
+}
+
+// titlebar easter egg: minimize summons a genie who immediately has second thoughts
+const osGenieOverlay = document.getElementById("osGenieOverlay");
+const osGenieBottle = document.getElementById("osGenieBottle");
+const osGenieFigure = document.getElementById("osGenieFigure");
+const osGenieDialogue = document.getElementById("osGenieDialogue");
+const osGenieLine = document.getElementById("osGenieLine");
+const osGenieChoiceYes = document.getElementById("osGenieChoiceYes");
+const osGenieChoiceNo = document.getElementById("osGenieChoiceNo");
+let genieRunning = false;
+let genieDismissTimeout = null;
+
+function spawnGenieSparkles(x, y) {
+  const layer = document.getElementById("cursorTrailLayer");
+  if (!layer) return;
+  for (let i = 0; i < 14; i++) {
+    const el = document.createElement("span");
+    el.textContent = Math.random() < 0.5 ? "✦" : "•";
+    el.style.position = "absolute";
+    el.style.left = "0";
+    el.style.top = "0";
+    el.style.color = "#7ee8ff";
+    el.style.fontSize = `${10 + Math.random() * 10}px`;
+    el.style.textShadow = "0 0 8px rgba(126,232,255,0.9)";
+    layer.appendChild(el);
+
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 40 + Math.random() * 60;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+
+    const anim = el.animate(
+      [
+        { transform: `translate(${x}px, ${y}px) scale(0.6)`, opacity: 1 },
+        { transform: `translate(${x + dx}px, ${y + dy}px) scale(1.1)`, opacity: 0 },
+      ],
+      { duration: 700 + Math.random() * 300, easing: "ease-out", fill: "forwards" }
+    );
+    anim.onfinish = () => el.remove();
+  }
+}
+
+function triggerGenieEasterEgg() {
+  if (!osGenieOverlay || genieRunning) return;
+  genieRunning = true;
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (prefersReducedMotion) {
+    showOsModal(
+      "THE GENIE",
+      "You sure about that?\n\n> Yes, Mr. Genie. (minimizes the window)\n> Wait, no— (nevermind)"
+    );
+    genieRunning = false;
+    return;
+  }
+
+  // matches .os-genie-bottle's fixed right/bottom/size in index_style.css
+  const cornerX = window.innerWidth - 94;
+  const cornerY = window.innerHeight - 126;
+  osGenieFigure.style.setProperty("--gx", `${cornerX - window.innerWidth / 2}px`);
+  osGenieFigure.style.setProperty("--gy", `${cornerY - window.innerHeight / 2}px`);
+
+  osGenieOverlay.classList.add("is-active");
+  osGenieBottle.classList.add("is-visible");
+  osGenieFigure.classList.add("is-visible");
+  osGenieLine.textContent = "";
+  osGenieDialogue.classList.remove("is-visible");
+
+  spawnGenieSparkles(cornerX, cornerY);
+
+  setTimeout(() => osGenieFigure.classList.add("is-centered"), 350);
+
+  setTimeout(() => {
+    osGenieLine.textContent = "You sure about that?";
+    osGenieDialogue.classList.add("is-visible");
+  }, 1100);
+
+  // safety net: if she's ignored entirely, quietly dismiss with no side effects
+  genieDismissTimeout = setTimeout(() => resolveGenie(false), 12000);
+}
+
+function resolveGenie(shouldMinimize) {
+  if (!genieRunning) return;
+  clearTimeout(genieDismissTimeout);
+
+  osGenieDialogue.classList.remove("is-visible");
+  osGenieFigure.classList.remove("is-centered", "is-visible");
+
+  setTimeout(() => {
+    osGenieBottle.classList.remove("is-visible");
+    osGenieOverlay.classList.remove("is-active");
+    genieRunning = false;
+  }, 500);
+
+  if (shouldMinimize) {
+    minimizeOsWindow();
+  }
+}
+
+if (osGenieChoiceYes) {
+  osGenieChoiceYes.addEventListener("click", () => resolveGenie(true));
+}
+if (osGenieChoiceNo) {
+  osGenieChoiceNo.addEventListener("click", () => resolveGenie(false));
+}
+
+// titlebar easter egg: expand triggers a glitchy square burst and a reality check
+const osGlitchMessage = document.getElementById("osGlitchMessage");
+let glitchRunning = false;
+
+function triggerGlitchEasterEgg(originEl) {
+  if (glitchRunning) return;
+  glitchRunning = true;
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prefersReducedMotion) {
+    showOsModal("SYSTEM", "whoa there buddy, you're in a WEB BROWSER. relax.");
+    glitchRunning = false;
+    return;
+  }
+
+  const rect = originEl.getBoundingClientRect();
+  const originX = rect.left + rect.width / 2;
+  const originY = rect.top + rect.height / 2;
+  const palette = ["#ff5f87", "#5eead4", "#ffd166", "#9d8cff", "#7cf29c", "#ff8b5e"];
+
+  for (let i = 0; i < 18; i++) {
+    const el = document.createElement("div");
+    el.className = "os-glitch-square";
+    const size = 10 + Math.random() * 14;
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+    el.style.left = `${originX}px`;
+    el.style.top = `${originY}px`;
+    el.style.background = palette[Math.floor(Math.random() * palette.length)];
+    document.body.appendChild(el);
+
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 120 + Math.random() * 420;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    const spin = 180 + Math.random() * 180;
+    const scale = 3 + Math.random() * 7;
+    const duration = 420 + Math.random() * 260;
+
+    const anim = el.animate(
+      [
+        { transform: "translate(-50%, -50%) scale(0.4) rotate(0deg)", opacity: 1 },
+        {
+          transform: `translate(calc(-50% + ${dx * 0.5}px), calc(-50% + ${dy * 0.5}px)) scale(${scale * 0.6}) rotate(${spin}deg)`,
+          opacity: 1,
+          offset: 0.55,
+        },
+        {
+          transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(${scale}) rotate(${spin * 2}deg)`,
+          opacity: 0,
+        },
+      ],
+      { duration, easing: "steps(5, end)", fill: "forwards" }
+    );
+    anim.onfinish = () => el.remove();
+  }
+
+  setTimeout(() => {
+    if (osGlitchMessage) osGlitchMessage.classList.add("is-visible");
+  }, 180);
+  setTimeout(() => {
+    if (osGlitchMessage) osGlitchMessage.classList.remove("is-visible");
+  }, 2756);
+  setTimeout(() => {
+    glitchRunning = false;
+  }, 3006);
+}
+
+// OS shell: cursor-tracked 3d tilt on every icon (layers on top of the CSS orbit)
+const osTiltIcons = document.querySelectorAll(".os-icon");
+const osReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+osTiltIcons.forEach((icon) => {
+  const inner = icon.querySelector(".os-icon-inner");
+  if (!inner) return;
+
+  icon.addEventListener("mousemove", (e) => {
+    if (osReduceMotion.matches) return;
+    const rect = icon.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    const maxTilt = 18;
+    inner.style.transform = `rotateX(${(-py * maxTilt).toFixed(2)}deg) rotateY(${(px * maxTilt).toFixed(2)}deg)`;
+  });
+
+  icon.addEventListener("mouseleave", () => {
+    inner.style.transform = "rotateX(0deg) rotateY(0deg)";
+  });
+});
+
+// OS shell: taskbar clock
+const osClock = document.getElementById("osClock");
+if (osClock) {
+  const updateClock = () => {
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    osClock.textContent = `${hours}:${minutes} ${ampm}`;
+  };
+  updateClock();
+  setInterval(updateClock, 15000);
+}
+
+// ---------- taskbar: live "N ONLINE" presence tracker (Upstash Redis via /api/presence) ----------
+const osOnlineCount = document.getElementById("osOnlineCount");
+if (osOnlineCount) {
+  const PRESENCE_ID_KEY = "bailey-presence-id";
+  let presenceId = sessionStorage.getItem(PRESENCE_ID_KEY);
+  if (!presenceId) {
+    presenceId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    sessionStorage.setItem(PRESENCE_ID_KEY, presenceId);
+  }
+
+  async function sendPresenceHeartbeat() {
+    try {
+      const res = await fetch("/api/presence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: presenceId }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (typeof data.count === "number") {
+        osOnlineCount.textContent = data.count;
+      }
+    } catch (err) {
+      // silently fail; keep last known count
     }
-  },
-  { once: false }
-);
-  
+  }
+
+  sendPresenceHeartbeat();
+  setInterval(sendPresenceHeartbeat, 15000);
+
+  window.addEventListener("pagehide", () => {
+    if (!navigator.sendBeacon) return;
+    navigator.sendBeacon(
+      "/api/presence",
+      new Blob([JSON.stringify({ id: presenceId, leaving: true })], { type: "application/json" })
+    );
+  });
+}
+
+// ---------- cursor system: 5 selectable modes, persisted, default "rainbow" ----------
+const cursorTrailLayer = document.getElementById("cursorTrailLayer");
+
+if (cursorTrailLayer) {
+  const CURSOR_MODES = ["arrow", "sparkle", "rainbow", "floppy", "star"];
+  const CURSOR_STORAGE_KEY = "bailey-cursor-mode";
+  let currentCursorMode =
+    localStorage.getItem(CURSOR_STORAGE_KEY) &&
+    CURSOR_MODES.includes(localStorage.getItem(CURSOR_STORAGE_KEY))
+      ? localStorage.getItem(CURSOR_STORAGE_KEY)
+      : "rainbow";
+
+  const rainbowHues = [0, 45, 90, 160, 200, 260, 310];
+  let rainbowIndex = 0;
+  let lastTrailSpawn = 0;
+
+  function applyCursorMode(mode) {
+    CURSOR_MODES.forEach((m) => document.body.classList.remove(`cursor-${m}`));
+    document.body.classList.add(`cursor-${mode}`);
+    currentCursorMode = mode;
+    localStorage.setItem(CURSOR_STORAGE_KEY, mode);
+
+    document
+      .querySelectorAll(".os-startmenu-item[data-cursor]")
+      .forEach((btn) => {
+        btn.classList.toggle(
+          "is-selected",
+          btn.getAttribute("data-cursor") === mode
+        );
+      });
+  }
+
+  function spawnParticle(x, y, kind) {
+    const el = document.createElement("span");
+    el.style.position = "absolute";
+    el.style.left = "0";
+    el.style.top = "0";
+
+    if (kind === "sparkle") {
+      el.textContent = "✦";
+      el.style.color = "#ffd166";
+      el.style.fontSize = "18px";
+      el.style.textShadow = "0 0 6px rgba(255,209,102,0.8)";
+    } else if (kind === "rainbow") {
+      el.style.width = "10px";
+      el.style.height = "10px";
+      el.style.borderRadius = "50%";
+      el.style.background = `hsl(${rainbowHues[rainbowIndex % rainbowHues.length]}, 90%, 65%)`;
+      el.style.boxShadow = `0 0 8px hsl(${rainbowHues[rainbowIndex % rainbowHues.length]}, 90%, 65%)`;
+      rainbowIndex++;
+    } else if (kind === "burst") {
+      el.textContent = "★";
+      el.style.color = "#c97b5f";
+      el.style.fontSize = "14px";
+    }
+
+    cursorTrailLayer.appendChild(el);
+
+    const dx = (Math.random() - 0.5) * 30;
+    const dy = kind === "burst" ? (Math.random() - 0.5) * 30 : 20 + Math.random() * 10;
+
+    const anim = el.animate(
+      [
+        { transform: `translate(${x}px, ${y}px) scale(1)`, opacity: 1 },
+        {
+          transform: `translate(${x + dx}px, ${y + dy}px) scale(0.4)`,
+          opacity: 0,
+        },
+      ],
+      { duration: 650, easing: "ease-out", fill: "forwards" }
+    );
+
+    anim.onfinish = () => el.remove();
+  }
+
+  document.addEventListener("mousemove", (e) => {
+    if (osReduceMotion.matches) return;
+    if (currentCursorMode !== "sparkle" && currentCursorMode !== "rainbow") return;
+    const now = performance.now();
+    if (now - lastTrailSpawn < 22) return;
+    lastTrailSpawn = now;
+    spawnParticle(e.clientX, e.clientY, currentCursorMode);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (osReduceMotion.matches) return;
+    if (currentCursorMode !== "star") return;
+    for (let i = 0; i < 5; i++) {
+      spawnParticle(e.clientX, e.clientY, "burst");
+    }
+  });
+
+  applyCursorMode(currentCursorMode);
+
+  document.querySelectorAll(".os-startmenu-item[data-cursor]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      applyCursorMode(btn.getAttribute("data-cursor"));
+    });
+  });
+}
+
+// ---------- start menu ----------
+const osMenuButton = document.getElementById("osMenuButton");
+const osStartMenu = document.getElementById("osStartMenu");
+
+if (osMenuButton && osStartMenu) {
+  osMenuButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    osStartMenu.classList.toggle("is-open");
+    osMenuButton.classList.toggle("is-open", osStartMenu.classList.contains("is-open"));
+  });
+
+  document.addEventListener("click", (e) => {
+    if (
+      osStartMenu.classList.contains("is-open") &&
+      !osStartMenu.contains(e.target) &&
+      e.target !== osMenuButton
+    ) {
+      osStartMenu.classList.remove("is-open");
+      osMenuButton.classList.remove("is-open");
+    }
+  });
+
+  // nostalgia joke entries: a little wink, nothing more
+  const startmenuJokeTitles = {
+    solitaire: "SOLITAIRE.EXE",
+    minesweeper: "MINESWEEPER.EXE",
+  };
+
+  const startmenuJokes = {
+    solitaire: [
+      "solitaire.exe has stopped responding.\n(as it should, it's 2001)",
+      "You win! ...jk, the cards were never real.",
+      "52 cards, 0 of them exist.",
+      "This game requires Windows 98 or a time machine.",
+    ],
+    minesweeper: [
+      "minesweeper.exe has stopped responding.\n(as it should, it's 2001)",
+      "You clicked a mine. There were no mines. You still lost.",
+      "Flag placed. Nothing happened. That's the game.",
+      "Loading... loading... this is the whole game.",
+    ],
+  };
+
+  // Programs launched from the start menu
+  document.querySelectorAll(".os-startmenu-item[data-program]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const program = btn.getAttribute("data-program");
+      osStartMenu.classList.remove("is-open");
+      osMenuButton.classList.remove("is-open");
+
+      if ((program === "pong" || program === "thewall") && typeof openOsWindow === "function") {
+        openOsWindow(program);
+      } else {
+        const options = startmenuJokes[program] || [`${program}.exe has stopped responding.\n(as it should, it's 2001)`];
+        const message = options[Math.floor(Math.random() * options.length)];
+        showOsModal(startmenuJokeTitles[program] || "SYSTEM", message);
+      }
+    });
+  });
+}
+
+// ---------- generic in-site modal (replaces browser alert() for menu-bar jokes) ----------
+const osModal = document.getElementById("osModal");
+const osModalTitle = document.getElementById("osModalTitle");
+const osModalBody = document.getElementById("osModalBody");
+const osModalClose = document.getElementById("osModalClose");
+
+function showOsModal(title, body) {
+  if (!osModal) return;
+  osModalTitle.textContent = title;
+  osModalBody.textContent = body;
+  osModal.classList.add("is-open");
+}
+
+function hideOsModal() {
+  if (!osModal) return;
+  osModal.classList.remove("is-open");
+}
+
+if (osModal) {
+  osModalClose.addEventListener("click", hideOsModal);
+  osModal.addEventListener("click", (e) => {
+    if (e.target === osModal) hideOsModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") hideOsModal();
+  });
+}
+
+// ---------- top menu bar ----------
+const osMenuBar = document.getElementById("osMenuBar");
+
+if (osMenuBar) {
+  const menubarItems = Array.from(osMenuBar.querySelectorAll(".os-menubar-item"));
+
+  const closeAllMenubarItems = () => {
+    menubarItems.forEach((item) => item.classList.remove("is-open"));
+  };
+
+  menubarItems.forEach((item) => {
+    const label = item.querySelector(".os-menubar-label");
+
+    label.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const wasOpen = item.classList.contains("is-open");
+      closeAllMenubarItems();
+      if (!wasOpen) item.classList.add("is-open");
+    });
+
+    item.addEventListener("mouseenter", () => {
+      const anyOpen = menubarItems.some((i) => i.classList.contains("is-open"));
+      if (anyOpen && !item.classList.contains("is-open")) {
+        closeAllMenubarItems();
+        item.classList.add("is-open");
+      }
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!osMenuBar.contains(e.target)) closeAllMenubarItems();
+  });
+
+  const menubarJokeTitles = {
+    about: "ABOUT THIS SITE",
+    cut: "EDIT > CUT",
+    copy: "EDIT > COPY",
+    paste: "EDIT > PASTE",
+    help: "HELP",
+  };
+
+  const menubarJokes = {
+    about: [
+      "BAILEY // OS 2.0\n\nMemory: 640K (ought to be enough for anybody)\nBuilt with vanilla JS, spite, and a warm gradient.\n\nNot actually an operating system.",
+    ],
+    cut: [
+      "Nothing selected. Nothing to cut.",
+      "Cut? This isn't that kind of website.",
+      "Cut into what, exactly?",
+      "scissors.exe not found. Please insert scissors.",
+    ],
+    copy: [
+      "Nothing selected. Nothing to copy.",
+      "Copied 0 bytes to clipboard. Impressive, honestly.",
+      "Ctrl+C on a static site? Bold move.",
+      "There's nothing here, but I admire the effort.",
+    ],
+    paste: [
+      "Clipboard is empty. It has always been empty.",
+      "Pasting... pasting... still pasting... nope.",
+      "Error 404: Clipboard not found.",
+      "You can't paste feelings into a textarea.",
+    ],
+    help: [
+      "You're on your own, unfortunately.",
+      "Have you tried turning it off and on again?",
+      "Documentation? In this economy?",
+      "help.exe achieved sentience and left.",
+    ],
+  };
+
+  osMenuBar.querySelectorAll("[data-joke]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      closeAllMenubarItems();
+      const key = btn.getAttribute("data-joke");
+      const options = menubarJokes[key] || ["..."];
+      const message = options[Math.floor(Math.random() * options.length)];
+      showOsModal(menubarJokeTitles[key] || "SYSTEM", message);
+    });
+  });
+}
+
+// ---------- fake shutdown sequence (windows caption, early-mac happy-face icon) ----------
+const osShutdownBtn = document.getElementById("osShutdownBtn");
+const osShutdown = document.getElementById("osShutdown");
+const osShutdownContent = document.getElementById("osShutdownContent");
+const osBootflash = document.getElementById("osBootflash");
+const osEasterEgg = document.getElementById("osEasterEgg");
+
+if (osShutdownBtn && osShutdown && osShutdownContent) {
+  let isShuttingDown = false;
+
+  osShutdownBtn.addEventListener("click", () => {
+    if (osStartMenu) osStartMenu.classList.remove("is-open");
+    if (osMenuButton) osMenuButton.classList.remove("is-open");
+    osShutdownContent.classList.remove("is-collapsing");
+    osShutdown.classList.add("is-visible");
+  });
+
+  const dismissShutdown = () => {
+    if (!osShutdown.classList.contains("is-visible") || isShuttingDown) return;
+    isShuttingDown = true;
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    let poweredBackOn = false;
+    const powerBackOn = () => {
+      if (poweredBackOn) return;
+      poweredBackOn = true;
+      osShutdown.classList.remove("is-visible");
+      osShutdownContent.classList.remove("is-collapsing");
+      if (osBootflash && !prefersReducedMotion) {
+        osBootflash.classList.add("is-active");
+        setTimeout(() => osBootflash.classList.remove("is-active"), 520);
+      }
+      if (osEasterEgg) {
+        const showDelay = prefersReducedMotion ? 100 : 550;
+        setTimeout(() => {
+          osEasterEgg.classList.add("is-active");
+          setTimeout(() => osEasterEgg.classList.remove("is-active"), 3200);
+        }, showDelay);
+      }
+      isShuttingDown = false;
+    };
+
+    if (prefersReducedMotion) {
+      powerBackOn();
+      return;
+    }
+
+    // classic CRT power-off: the picture collapses to a line, then a dot
+    osShutdownContent.classList.add("is-collapsing");
+    osShutdownContent.addEventListener("animationend", powerBackOn, {
+      once: true,
+    });
+
+    // Fallback in case the animation never fires
+    setTimeout(powerBackOn, 550);
+  };
+
+  osShutdown.addEventListener("click", dismissShutdown);
+  document.addEventListener("keydown", (e) => {
+    if (osShutdown.classList.contains("is-visible")) {
+      e.preventDefault();
+      dismissShutdown();
+    }
+  });
+}
+
+// ---------- thewall.exe: real message board (Upstash Redis via /api/messages) ----------
+const wallFeed = document.getElementById("thewallFeed");
+const wallForm = document.getElementById("thewallForm");
+const wallView = document.getElementById("view-thewall");
+
+if (wallFeed && wallForm && wallView) {
+  const wallName = document.getElementById("thewallName");
+  const wallMessage = document.getElementById("thewallMessage");
+  const wallWebsite = document.getElementById("thewallWebsite");
+  let knownIds = new Set();
+  let hasLoadedOnce = false;
+
+  function formatTime(ts) {
+    const d = new Date(ts);
+    let hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    return `${hours}:${minutes} ${ampm}`;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  const wallAccents = ["#ff6ec7", "#5eead4", "#ffd166", "#9d8cff", "#7cf29c", "#ff8b5e"];
+  function accentForName(name) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+    }
+    return wallAccents[hash % wallAccents.length];
+  }
+
+  function renderMessages(messages) {
+    if (!messages.length) {
+      wallFeed.innerHTML = '<div class="os-thewall-empty">no messages yet — be the first to post</div>';
+      return;
+    }
+    // feed is column-reverse, so newest-first array reads bottom-to-top visually
+    wallFeed.innerHTML = messages
+      .map((m) => {
+        const name = m.name || "anonymous";
+        return `
+        <div class="os-thewall-entry" style="--wall-accent:${accentForName(name)}">
+          <span class="os-thewall-entry-meta">${escapeHtml(name)}</span>
+          <span class="os-thewall-entry-time">${formatTime(m.ts)}</span>
+          <div class="os-thewall-entry-message">${escapeHtml(m.message)}</div>
+        </div>`;
+      })
+      .join("");
+  }
+
+  async function fetchMessages() {
+    try {
+      const res = await fetch("/api/messages");
+      if (!res.ok) return;
+      const data = await res.json();
+      const messages = data.messages || [];
+      const ids = messages.map((m) => m.id).join(",");
+      const currentIds = new Set(messages.map((m) => m.id));
+      const isSame =
+        currentIds.size === knownIds.size &&
+        [...currentIds].every((id) => knownIds.has(id));
+
+      if (!hasLoadedOnce || !isSame) {
+        renderMessages(messages);
+        knownIds = currentIds;
+        hasLoadedOnce = true;
+      }
+      void ids;
+    } catch (err) {
+      if (!hasLoadedOnce) {
+        wallFeed.innerHTML = '<div class="os-thewall-empty">couldn\'t reach the board — try again in a bit</div>';
+      }
+    }
+  }
+
+  wallForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const message = wallMessage.value.trim();
+    if (!message) return;
+
+    const submitBtn = wallForm.querySelector(".os-thewall-submit");
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: wallName.value.trim(),
+          message,
+          website: wallWebsite.value,
+        }),
+      });
+      if (res.ok) {
+        wallMessage.value = "";
+        await fetchMessages();
+      }
+    } catch (err) {
+      // silently fail; user can retry
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  // Poll only while the thewall window is actually open and visible
+  setInterval(() => {
+    if (wallView.classList.contains("is-active") && osWindow.classList.contains("is-open")) {
+      fetchMessages();
+    }
+  }, 8000);
+
+  // Fetch immediately the first time thewall is opened, from either the
+  // desktop icon (data-window) or the start menu (data-program)
+  document
+    .querySelectorAll('[data-window="thewall"], [data-program="thewall"]')
+    .forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (!hasLoadedOnce) fetchMessages();
+      });
+    });
+}

@@ -1,68 +1,284 @@
+<meta charset="utf-8">
+<title>Bailey Brooks</title>
+<meta name="description" content="Bailey Brooks — 3D artist and developer.">
+<meta property="og:title" content="Bailey Brooks">
+<meta property="og:description" content="3D artist and developer. Check out GameShelf, my game collection as a physical shelf.">
+<meta property="og:image" content="https://baibrooks.com/assets/planet.png">
+<meta property="og:url" content="https://baibrooks.com/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Bailey Brooks">
+<meta name="twitter:description" content="3D artist and developer. Check out GameShelf, my game collection as a physical shelf.">
+<meta name="twitter:image" content="https://baibrooks.com/assets/planet.png">
 <link rel="stylesheet" href="index_style.css">
-<script language="JavaScript" type="text/javascript" src=/node_modules/js/jquery-1.2.6.min.js"></script>
+<script language="JavaScript" type="text/javascript" src="/node_modules/js/jquery-1.2.6.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lilita+One">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Grotesk:wght@400;500;700&family=Space+Mono&display=swap">
 <link rel="icon" type="image/x-icon" href="assets/planet.png">
 
-<div class="custom-cursor" id="customCursor"></div>
+<div class="cursor-trail-layer" id="cursorTrailLayer" aria-hidden="true"></div>
 
 <head>
     <script async src="https://us.umami.is/script.js" data-website-id="2905a2ba-9957-46f5-9196-a53624d26687"></script>
     <script defer src="https://cdn.vercel-analytics.com/v1/web.js"></script>
 </head>
 
-<div class="nav">
-    <a class="one" data-umami-event="open-home" href="index.html">HOME</a><br>
-    <a class="one" data-umami-event="open-projects" href="projects.html">PROJECTS</a><br>
-    <a class="one" data-umami-event="open-resume" href="resume.html">RESUME</a><br>
-    <a class="three" data-umami-event="open-linkedin" href="https://linkedin.com/in/baileyebrooks"><img src="/assets/li.png" height="30px"></a>
-    <a class="three" data-umami-event="open-twitch" href="https://twitch.tv/baikat"><img src="/assets/twitch.png" height="30px"></a>
-    <a class="three" data-umami-event="open-twitter" href="https://twitter.com/notbaileybrooks"><img src="/assets/twitter.png" height="30px"></a>
+<!-- top menu bar, Lisa-inspired but glassed to match the rest of the OS -->
+<div class="os-menubar" id="osMenuBar">
+  <div class="os-menubar-logo" aria-hidden="true"><img src="assets/planet.png" alt=""></div>
+  <div class="os-menubar-item" data-menubar="bailey">
+    <button class="os-menubar-label" type="button">BAILEY</button>
+    <div class="os-menubar-dropdown">
+      <button class="os-startmenu-item" type="button" data-joke="about">About This Site...</button>
+    </div>
+  </div>
+  <div class="os-menubar-item" data-menubar="edit">
+    <button class="os-menubar-label" type="button">EDIT</button>
+    <div class="os-menubar-dropdown">
+      <button class="os-startmenu-item" type="button" data-joke="cut">Cut</button>
+      <button class="os-startmenu-item" type="button" data-joke="copy">Copy</button>
+      <button class="os-startmenu-item" type="button" data-joke="paste">Paste</button>
+    </div>
+  </div>
+  <div class="os-menubar-item" data-menubar="cursor">
+    <button class="os-menubar-label" type="button">CURSOR</button>
+    <div class="os-menubar-dropdown">
+      <button class="os-startmenu-item" type="button" data-cursor="arrow">➤ pixel arrow</button>
+      <button class="os-startmenu-item" type="button" data-cursor="sparkle">✦ sparkle trail</button>
+      <button class="os-startmenu-item" type="button" data-cursor="rainbow">◆ rainbow trail</button>
+      <button class="os-startmenu-item" type="button" data-cursor="floppy">💾 floppy disk</button>
+      <button class="os-startmenu-item" type="button" data-cursor="star">★ star wand</button>
+    </div>
+  </div>
+  <div class="os-menubar-item" data-menubar="help">
+    <button class="os-menubar-label" type="button">HELP</button>
+    <div class="os-menubar-dropdown">
+      <button class="os-startmenu-item" type="button" data-joke="help">You're On Your Own</button>
+    </div>
+  </div>
+  <div class="os-menubar-status" aria-hidden="true">SYSTEM 2.0</div>
 </div>
 
-<header>
-    <span class="float-word" style="--delay: 0s;">hi</span>
-    <span class="float-word" style="--delay: 0.5s;">i'm</span>
-    <span class="float-word" style="--delay: 1s;">bailey</span>
-    <div class="noise"></div>
-</header>
+<!-- desktop icons, sitting directly on the interactive gradient -->
+<div class="desktop-icons">
+  <button class="os-icon" type="button" data-window="home" data-umami-event="open-home">
+    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/home-apple.png" alt=""></div></div></div>
+    <span class="os-icon-label">HOME</span>
+  </button>
+  <button class="os-icon" type="button" data-window="projects" data-umami-event="open-projects">
+    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/projects-gotchi.png" alt=""></div></div></div>
+    <span class="os-icon-label">PROJECTS</span>
+  </button>
+  <button class="os-icon" type="button" data-window="resume" data-umami-event="open-resume">
+    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/resume-strawberry.png" alt=""></div></div></div>
+    <span class="os-icon-label">RESUME</span>
+  </button>
+  <button class="os-icon" type="button" data-window="thewall" data-umami-event="open-thewall">
+    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/wall-chatbox.png" alt=""></div></div></div>
+    <span class="os-icon-label">THE WALL</span>
+  </button>
+  <a class="os-icon" id="gameshelfLink" href="https://gameshelf-plum.vercel.app" data-umami-event="open-gameshelf">
+    <div class="os-icon-frame"><div class="os-icon-motion"><div class="os-icon-inner"><img src="assets/icons/gameshelf-tulip.png" alt=""></div></div></div>
+    <span class="os-icon-label">GAME SHELF</span>
+  </a>
+</div>
 
-
-<div class="container" style="position: relative; z-index: 10;">
-    <!-- Ghost temporarily hidden -->
-    <!-- 
-    <svg class="ghost" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-         width="127.433px" height="132.743px" viewBox="0 0 127.433 132.743" enable-background="new 0 0 127.433 132.743"
-         xml:space="preserve">
-    
-    <!-- FILL -->
-         <path fill="#FFFFFF" stroke="#FFFACD" stroke-width="2" d="M116.223,125.064c1.032-1.183,1.323-2.73,1.391-3.747V54.76c0,0-4.625-34.875-36.125-44.375
-        s-66,6.625-72.125,44l-0.781,63.219c0.062,4.197,1.105,6.177,1.808,7.006c1.94,1.811,5.408,3.465,10.099-0.6
-        c7.5-6.5,8.375-10,12.75-6.875s5.875,9.75,13.625,9.25s12.75-9,13.75-9.625s4.375-1.875,7,1.25s5.375,8.25,12.875,7.875
-        s12.625-8.375,12.625-8.375s2.25-3.875,7.25,0.375s7.625,9.75,14.375,8.125C114.739,126.01,115.412,125.902,116.223,125.064z"/>
-    
-    <!-- EYES -->
-    <circle fill="#013E51" cx="86.238" cy="57.885" r="6.667"/>
-    <circle fill="#013E51" cx="40.072" cy="57.885" r="6.667"/>
-    
-    <!-- SMILE -->
-    <path fill="#013E51" d="M71.916,62.782c0.05-1.108-0.809-2.046-1.917-2.095c-0.673-0.03-1.28,0.279-1.667,0.771
-        c-0.758,0.766-2.483,2.235-4.696,2.358c-1.696,0.094-3.438-0.625-5.191-2.137c-0.003-0.003-0.007-0.006-0.011-0.009l0.002,0.005
-        c-0.332-0.294-0.757-0.488-1.235-0.509c-1.108-0.049-2.046,0.809-2.095,1.917c-0.032,0.724,0.327,1.37,0.887,1.749
-        c-0.001,0-0.002-0.001-0.003-0.001c2.221,1.871,4.536,2.88,6.912,2.986c0.333,0.014,0.67,0.012,1.007-0.01
-        c3.163-0.191,5.572-1.942,6.888-3.166l0.452-0.453c0.021-0.019,0.04-0.041,0.06-0.061l0.034-0.034
-        c-0.007,0.007-0.015,0.014-0.021,0.02C71.666,63.771,71.892,63.307,71.916,62.782z"/>
-    
-    </svg>
-      <!-- Shadow temporarily hidden -->
-      <!-- 
-      <p class="shadowFrame"><svg version="1.1" class="shadow" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="61px" y="20px"
-         width="122.436px" height="39.744px" viewBox="0 0 122.436 39.744" enable-background="new 0 0 122.436 39.744"
-         xml:space="preserve">
-    <ellipse fill="#d1cfc4" cx="61.128" cy="19.872" rx="49.25" ry="8.916"/>
-        </svg></p>
-      -->
+<!-- the one floating window, hidden until an icon opens it -->
+<div class="os-window" id="osWindow">
+  <div class="os-titlebar">
+    <div class="os-titlebar-buttons">
+      <button class="os-btn os-btn-close" id="osWindowClose" type="button" aria-label="Close window"></button>
+      <button class="os-btn os-btn-minimize" id="osWindowMinimize" type="button" aria-label="Minimize window"></button>
+      <button class="os-btn os-btn-expand" id="osWindowExpand" type="button" aria-label="Expand window"></button>
     </div>
+    <div class="os-titlebar-text" id="osWindowTitle">BAILEY // OS 2.0</div>
+  </div>
+
+  <div class="os-scanline" aria-hidden="true"></div>
+
+  <div class="os-content">
+
+    <section class="os-view" id="view-home">
+      <div class="os-intro">hi i'm bailey<span class="os-cursor">_</span></div>
+    </section>
+
+    <section class="os-view" id="view-projects">
+      <h2 class="os-view-header">// PROJECTS</h2>
+      <div class="os-entry">
+        <a class="os-entry-title" href="https://bailey.github.io/gallery">the gallery</a>
+        <p class="os-entry-desc">a three.js gallery where my blender models live</p>
+        <p class="os-entry-tags">3d modeling in blender, three.js</p>
+      </div>
+      <div class="os-entry">
+        <a class="os-entry-title" href="https://bailey.github.io/studio">the studio</a>
+        <p class="os-entry-desc">the gallery v2 [under construction]</p>
+        <p class="os-entry-tags">3d modeling in blender, react three fiber, react</p>
+      </div>
+      <div class="os-entry">
+        <a class="os-entry-title" href="https://bailey.github.io/which-eevee-are-you/">the eevee quiz</a>
+        <p class="os-entry-desc">find out which eevee you are :3</p>
+        <p class="os-entry-tags">react</p>
+      </div>
+      <div class="os-entry">
+        <a class="os-entry-title" href="https://gameshelf-plum.vercel.app">gameshelf</a>
+        <p class="os-entry-desc">my game collection as a physical shelf</p>
+        <p class="os-entry-tags">three.js, react</p>
+      </div>
+      <div class="os-entry">
+        <a class="os-entry-title" href="https://baibrooks.com">this website</a>
+        <p class="os-entry-desc">yes, this one. you're standing in it right now</p>
+        <p class="os-entry-tags">vanilla js, three.js, spite</p>
+      </div>
+    </section>
+
+    <section class="os-view" id="view-resume">
+      <h2 class="os-view-header">// RESUME</h2>
+      <div class="os-entry">
+        <div class="os-entry-title">apple — <i>product manager</i></div>
+        <p class="os-entry-desc">gaming &amp; graphics</p>
+      </div>
+      <div class="os-entry">
+        <div class="os-entry-title">spotify — <i>senior product manager</i></div>
+        <p class="os-entry-desc">backstage.io new user experience, search, accessibility</p>
+      </div>
+      <div class="os-entry">
+        <div class="os-entry-title">github — <i>product manager III</i></div>
+        <p class="os-entry-desc">communities + profile, github codespaces, free-to-paid growth</p>
+      </div>
+      <div class="os-entry">
+        <div class="os-entry-title">microsoft — <i>product manager</i></div>
+        <p class="os-entry-desc">visual studio app center, visual c++, internal security tooling</p>
+      </div>
+    </section>
+
+    <!-- pong.exe: hidden for now (needs the Godot source re-exported without
+         thread support; the current build requires cross-origin-isolation
+         headers we've since removed). Restore the start-menu button below and
+         the iframe src to bring it back. -->
+    <section class="os-view os-view-fill" id="view-pong">
+      <iframe class="os-pong-frame" data-src="ponggame/pong_game.html" title="Pong" loading="lazy"></iframe>
+    </section>
+
+    <section class="os-view os-view-fill os-thewall" id="view-thewall">
+      <div class="os-thewall-header">
+        <span>BAILEY'S WALL</span>
+        <span class="os-thewall-header-sub">— leave a message —</span>
+        <span class="os-thewall-header-live" aria-hidden="true"><span class="os-pulse"></span>LIVE</span>
+      </div>
+      <div class="os-thewall-feed" id="thewallFeed">
+        <div class="os-thewall-empty">connecting to board...</div>
+      </div>
+      <form class="os-thewall-form" id="thewallForm">
+        <input
+          class="os-thewall-website"
+          type="text"
+          name="website"
+          id="thewallWebsite"
+          autocomplete="off"
+          tabindex="-1"
+          aria-hidden="true"
+        >
+        <div class="os-thewall-row">
+          <input
+            class="os-thewall-name"
+            type="text"
+            id="thewallName"
+            placeholder="name"
+            maxlength="24"
+            autocomplete="off"
+          >
+          <button class="os-thewall-submit" type="submit">post &gt;</button>
+        </div>
+        <textarea
+          class="os-thewall-message"
+          id="thewallMessage"
+          placeholder="type a message..."
+          maxlength="280"
+          rows="2"
+          required
+        ></textarea>
+      </form>
+    </section>
+
+  </div>
+</div>
+
+<!-- start menu -->
+<div class="os-startmenu" id="osStartMenu">
+  <div class="os-startmenu-banner" aria-hidden="true">
+    <span class="os-startmenu-banner-text">BAILEY // OS 2.0</span>
+  </div>
+  <div class="os-startmenu-content">
+    <div class="os-startmenu-section">
+      <div class="os-startmenu-label">PROGRAMS</div>
+      <!-- pong.exe hidden for now, see note above view-pong -->
+      <button class="os-startmenu-item" type="button" data-program="thewall">the wall.exe</button>
+      <button class="os-startmenu-item" type="button" data-program="solitaire">solitaire.exe</button>
+      <button class="os-startmenu-item" type="button" data-program="minesweeper">minesweeper.exe</button>
+    </div>
+    <div class="os-startmenu-section">
+      <button class="os-startmenu-item os-startmenu-shutdown" type="button" id="osShutdownBtn">⏻ shut down...</button>
+    </div>
+  </div>
+</div>
+
+<!-- fake shutdown sequence -->
+<div class="os-shutdown" id="osShutdown" aria-hidden="true">
+  <div class="os-shutdown-scanlines" aria-hidden="true"></div>
+  <div class="os-shutdown-content" id="osShutdownContent">
+    <img class="os-shutdown-icon" src="assets/cursors/shutdown-coin.png" alt="" width="96" height="86">
+    <div class="os-shutdown-text">It's now safe to turn off your computer.</div>
+    <div class="os-shutdown-prompt">PRESS ANY KEY TO CONTINUE<span class="os-cursor">_</span></div>
+  </div>
+</div>
+<div class="os-bootflash" id="osBootflash" aria-hidden="true"></div>
+
+<div class="os-toast" id="osEasterEgg" aria-hidden="true">
+  <div class="os-toast-title">SYSTEM MESSAGE</div>
+  <div class="os-toast-body">jk — you're in a web browser. this isn't real.</div>
+</div>
+
+<!-- generic in-site modal, replaces browser alert() for menu-bar jokes -->
+<div class="os-modal" id="osModal" aria-hidden="true">
+  <div class="os-modal-panel" role="dialog" aria-modal="true" aria-labelledby="osModalTitle">
+    <div class="os-modal-titlebar">
+      <div class="os-modal-title" id="osModalTitle">SYSTEM</div>
+      <button class="os-btn os-btn-close" id="osModalClose" type="button" aria-label="Close"></button>
+    </div>
+    <div class="os-modal-body" id="osModalBody"></div>
+  </div>
+</div>
+
+<!-- titlebar minimize easter egg: a genie pops out of a bottle and gets cold feet -->
+<div class="os-genie-overlay" id="osGenieOverlay" aria-hidden="true">
+  <div class="os-genie-bottle" id="osGenieBottle"></div>
+  <div class="os-genie-figure" id="osGenieFigure"></div>
+  <div class="os-genie-dialogue" id="osGenieDialogue">
+    <div class="os-genie-dialogue-inner">
+      <div class="os-genie-line" id="osGenieLine"></div>
+      <div class="os-genie-choice-list">
+        <button class="os-genie-choice" id="osGenieChoiceYes" type="button">Yes, Mr. Genie.</button>
+        <button class="os-genie-choice" id="osGenieChoiceNo" type="button">Wait, no—</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- titlebar expand easter egg: a burst of glitchy squares and a reality check -->
+<div class="os-glitch-message" id="osGlitchMessage" aria-hidden="true">whoa there buddy, you're in a WEB BROWSER. relax.</div>
+
+<!-- taskbar sits on the desktop itself now, not inside the window -->
+<div class="os-taskbar">
+  <button class="os-menu-pill" id="osMenuButton" type="button"><img class="os-menu-pill-glyph" src="assets/icons/menu-cloud.png" alt="" width="16" height="16">MENU</button>
+  <div class="os-taskbar-chip" id="osTaskbarChip" hidden></div>
+  <div class="os-tray">
+    <a class="os-tray-icon" data-umami-event="open-linkedin" href="https://linkedin.com/in/baileyebrooks"><img src="/assets/li.png" alt="LinkedIn"></a>
+    <a class="os-tray-icon" data-umami-event="open-twitch" href="https://twitch.tv/baikat"><img src="/assets/twitch.png" alt="Twitch"></a>
+    <a class="os-tray-icon" data-umami-event="open-twitter" href="https://twitter.com/notbaileybrooks"><img src="/assets/twitter.png" alt="Twitter"></a>
+  </div>
+  <div class="os-status"><span class="os-pulse"></span><span id="osOnlineCount">1</span> ONLINE · <span id="osClock">--:--</span></div>
+</div>
+
+<div class="gameshelf-transition" id="gameshelfTransition" aria-hidden="true"></div>
 
 <script src="script.js"></script>
 </body>
