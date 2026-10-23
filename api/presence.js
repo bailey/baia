@@ -1,3 +1,5 @@
+const { Ratelimit } = require("@upstash/ratelimit");
+const { clientIp, parseBody } = require("../lib/request");
 const { Redis } = require("@upstash/redis");
 
 // Same env-var wiring as api/messages.js — this project's Upstash integration
@@ -5,6 +7,12 @@ const { Redis } = require("@upstash/redis");
 const redis = new Redis({
   url: process.env.KV_REST_API_URL,
   token: process.env.KV_REST_API_TOKEN,
+});
+
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(60, "60 s"),
+  prefix: "bbs:presence-ratelimit",
 });
 
 const PRESENCE_KEY = "bbs:presence";
@@ -21,12 +29,20 @@ module.exports = async (req, res) => {
 
 async function handlePresence(req, res) {
   try {
-    const body = typeof req.body === "string" ? safeParse(req.body) : req.body;
-    const id = typeof (body && body.id) === "string" ? body.id.slice(0, 64) : null;
+    const body = parseBody(req);
+    const id = typeof (body && body.id) === "string" && /^[a-zA-Z0-9-]{1,64}$/.test(body.id) ? body.id : null;
     if (!id) {
       return res.status(400).json({ error: "id is required" });
     }
 
+    if (body.leaving !== undefined && typeof body.leaving !== "boolean") {
+      return res.status(400).json({ error: "leaving must be a boolean" });
+    }
+    const { success } = await ratelimit.limit(clientIp(req));
+    if (!success) {
+      res.setHeader("Retry-After", "60");
+      return res.status(429).json({ error: "too many presence requests" });
+    }
     const now = Date.now();
     await redis.zremrangebyscore(PRESENCE_KEY, 0, now - PRESENCE_TTL_MS);
 
@@ -41,13 +57,5 @@ async function handlePresence(req, res) {
     return res.status(200).json({ count: body.leaving ? count : Math.max(count, 1) });
   } catch (err) {
     return res.status(500).json({ error: "failed to update presence" });
-  }
-}
-
-function safeParse(raw) {
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
   }
 }

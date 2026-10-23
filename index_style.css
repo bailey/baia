@@ -44,22 +44,39 @@ body {
   will-change: transform, opacity;
 }
 
-body.cursor-arrow {
-  cursor: url('assets/cursors/arrow.png') 4 2, auto;
-}
+body.cursor-arrow { --profile-cursor: url('assets/cursors/classic.svg') 0 0, auto; }
+body.cursor-sparkle { --profile-cursor: url('assets/cursors/glitter.svg') 11 11, auto; }
+body.cursor-rainbow { --profile-cursor: url('assets/cursors/classic.svg') 0 0, auto; }
+body.cursor-hearts { --profile-cursor: url('assets/cursors/heart.svg') 15 14, auto; }
+body.cursor-floppy { --profile-cursor: url('assets/cursors/floppy.png') 12 12, auto; }
+body.cursor-star { --profile-cursor: url('assets/cursors/wand.svg') 9 8, auto; }
 
-body.cursor-floppy {
-  cursor: url('assets/cursors/floppy.png') 12 12, auto;
-}
+/* Keep the chosen pointer over links and controls, like a custom profile skin. */
+body[class*="cursor-"] { cursor: var(--profile-cursor); }
+body[class*="cursor-"] :is(a, button, [role="button"]) { cursor: var(--profile-cursor); }
+body[class*="cursor-"] :is(input, textarea) { cursor: text; }
+body[class*="cursor-"] button:disabled { cursor: not-allowed; }
 
-body.cursor-star {
-  cursor: url('assets/cursors/star.png') 12 12, auto;
+.profile-particle {
+  image-rendering: pixelated;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
-
-body.cursor-sparkle,
-body.cursor-rainbow {
-  cursor: url('assets/cursors/dot.png') 8 8, auto;
+.particle-sparkle, .particle-star { background-image: url('assets/cursors/glitter.svg'); }
+.particle-hearts { background-image: url('assets/cursors/heart.svg'); }
+.particle-rainbow {
+  width: 5px; height: 24px;
+  background: linear-gradient(to bottom, #ff2975 0 16.66%, #ff9729 16.66% 33.33%, #fff34a 33.33% 50%, #55ff72 50% 66.66%, #48c8ff 66.66% 83.33%, #c87aff 83.33% 100%);
 }
+[data-cursor]::before {
+  content: ''; display: inline-block; width: 18px; height: 18px; margin-right: 8px;
+  vertical-align: middle; background-size: contain; background-repeat: no-repeat; image-rendering: pixelated;
+}
+[data-cursor="arrow"]::before, [data-cursor="rainbow"]::before { background-image: url('assets/cursors/classic.svg'); }
+[data-cursor="sparkle"]::before { background-image: url('assets/cursors/glitter.svg'); }
+[data-cursor="hearts"]::before { background-image: url('assets/cursors/heart.svg'); }
+[data-cursor="star"]::before { background-image: url('assets/cursors/wand.svg'); }
+[data-cursor="floppy"]::before { background-image: url('assets/cursors/floppy.png'); }
 
 /* ---------- desktop icons ---------- */
 
@@ -1487,3 +1504,112 @@ body.is-navigating > *:not(.gameshelf-transition) {
     display: none;
   }
 }
+
+/* Hidden animated surfaces must also disappear from keyboard navigation. */
+.os-window:not(.is-open),
+.os-modal:not(.is-open),
+.os-startmenu:not(.is-open),
+.os-menubar-item:not(.is-open) .os-menubar-dropdown,
+.os-genie-overlay:not(.is-active),
+.os-genie-dialogue:not(.is-visible) {
+  visibility: hidden;
+}
+
+.os-thewall-status {
+  font-size: 12px;
+  color: #ffd166;
+  min-height: 1em;
+}
+
+@media (max-width: 720px) {
+  .os-window { height: min(560px, calc(100dvh - 110px)); }
+  .os-taskbar { gap: 6px; }
+  .os-tray { gap: 8px; }
+  .os-status { font-size: 10px; letter-spacing: 0; }
+  .desktop-icons { max-height: calc(100dvh - 125px); overflow-y: auto; }
+}
+
+.os-genie-overlay.is-active { pointer-events: auto; }
+.os-genie-choice:focus-visible, .os-thewall-delete:focus-visible {
+  outline: 2px solid #ffd166;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .os-genie-overlay::before, .os-genie-bottle, .os-genie-figure, .os-genie-dialogue {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Desktop games: compact controls, tactile cells, and a seven-column card table. */
+.os-view-fill.desktop-game {
+  padding: 18px !important;
+  height: auto;
+  color: #f2ecff;
+  min-height: 100%;
+  background: linear-gradient(145deg, rgba(16, 40, 39, .85), rgba(24, 20, 42, .9));
+}
+.desktop-game.is-active { display: block; }
+.game-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.game-toolbar h2 { font: 24px 'VT323', monospace; letter-spacing: .06em; margin-right: auto; }
+.game-counter { font: 16px 'VT323', monospace; color: #b5eadf; }
+.game-toolbar button {
+  color: #f2ecff; background: #35364f; border: 1px solid #777b97;
+  border-radius: 5px; padding: 7px 10px; font: 14px 'VT323', monospace; cursor: pointer;
+}
+.game-toolbar button:hover:not(:disabled), .game-toolbar button[aria-pressed="true"] { background: #596079; }
+.game-toolbar button:disabled { opacity: .45; cursor: default; }
+.game-instructions { margin: 12px 0 8px; font-size: 12px; line-height: 1.55; color: #d4d3e4; }
+.game-status { font: 17px 'VT323', monospace; color: #ffd166; min-height: 1.3em; margin-bottom: 12px; }
+.desktop-game button:focus-visible { outline: 3px solid #ffd166; outline-offset: 2px; z-index: 2; }
+.mine-board {
+  display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px;
+  width: min(100%, 342px); margin: 0 auto 12px; padding: 6px;
+  background: #141625; border: 2px solid #757894; border-radius: 7px;
+}
+.mine-cell {
+  aspect-ratio: 1; min-width: 0; padding: 0; border: 2px outset #9197b3;
+  border-radius: 3px; background: #515b79; color: #fff;
+  font: bold 20px 'VT323', monospace; cursor: pointer; touch-action: manipulation;
+}
+.mine-cell:hover:not(.is-open) { background: #697a9b; }
+.mine-cell.is-open { background: #242d40; border: 1px solid #3b4762; cursor: default; }
+.mine-cell[data-count="1"] { color: #8fc8ff; }
+.mine-cell[data-count="2"] { color: #9fe5a7; }
+.mine-cell[data-count="3"] { color: #ffa29e; }
+.mine-cell[data-count="4"] { color: #d3b0ff; }
+.mine-cell.is-mine { color: #ffd166; }
+.mine-cell.is-exploded { background: #9f3546; color: white; }
+.solitaire-table { --card-height: clamp(64px, 12vw, 100px); --card-step: 25px; padding-bottom: 14px; }
+.solitaire-top, .solitaire-columns { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 7px; }
+.solitaire-top { margin-bottom: 20px; }
+.solitaire-column { min-width: 0; display: flex; flex-direction: column; }
+.playing-card, .card-slot {
+  position: relative; display: block; width: 100%; height: var(--card-height); flex-shrink: 0;
+  border-radius: 6px; border: 1px solid #c8c6c1; padding: 0;
+  background: #f8f3e7; color: #20283b; text-align: left;
+  font: bold 18px Georgia, serif; cursor: pointer;
+}
+.solitaire-column .playing-card + .playing-card { margin-top: calc(var(--card-step) - var(--card-height)); }
+.card-corner { position: absolute; top: 4px; left: 5px; font-size: clamp(12px, 2.5vw, 18px); }
+.card-center { position: absolute; top: 45%; width: 100%; text-align: center; font-size: 28px; }
+.card-red { color: #b12643; }
+.card-back {
+  border: 2px solid #a3c7ce; background: repeating-linear-gradient(45deg, #23485b 0 4px, #315c6d 4px 8px);
+  color: #d7eee6;
+}
+.playing-card:disabled { cursor: default; }
+.stock-card { text-align: center; font-size: 30px; }
+.card-slot, .stock-empty { display: grid; place-items: center; background: rgba(0,0,0,.12); border: 1px dashed #86a5a5; color: #c0d6d1; font: 18px 'VT323', monospace; }
+.playing-card.is-selected { background: #fff0ad; box-shadow: inset 0 0 0 3px #c18a16; }
+.playing-card:hover:not(:disabled) { box-shadow: inset 0 0 0 2px #d2a342; }
+@media (max-width: 480px) {
+  .os-view-fill.desktop-game { padding: 12px 9px !important; }
+  .solitaire-top, .solitaire-columns { gap: 4px; }
+  .solitaire-table { --card-step: 24px; }
+  .card-corner { left: 3px; }
+  .card-center { font-size: 22px; }
+  .game-toolbar h2 { font-size: 22px; }
+}
+
+.solitaire-column .playing-card:focus-visible { outline-offset: -3px; z-index: auto; }

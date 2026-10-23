@@ -1,3 +1,5 @@
+const { randomBytes, randomUUID } = require("node:crypto");
+const { clientIp, parseBody } = require("../lib/request");
 const { Redis } = require("@upstash/redis");
 const { Ratelimit } = require("@upstash/ratelimit");
 
@@ -13,6 +15,12 @@ const ratelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(1, "20 s"),
   prefix: "bbs:ratelimit",
+});
+
+const deleteRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, "60 s"),
+  prefix: "bbs:delete-ratelimit",
 });
 
 const LIST_KEY = "bbs:messages";
@@ -54,7 +62,8 @@ async function handleList(req, res) {
 
 async function handlePost(req, res) {
   try {
-    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const body = parseBody(req);
+    if (!body) return res.status(400).json({ error: "invalid JSON body" });
     const name = sanitize(body && body.name, MAX_NAME_LEN) || "anonymous";
     const message = sanitize(body && body.message, MAX_MESSAGE_LEN);
     const honeypot = body && body.website;
@@ -68,22 +77,18 @@ async function handlePost(req, res) {
       return res.status(400).json({ error: "message is required" });
     }
 
-    const ip =
-      (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
-      req.socket?.remoteAddress ||
-      "unknown";
-
-    const { success } = await ratelimit.limit(ip);
+    const { success } = await ratelimit.limit(clientIp(req));
     if (!success) {
+      res.setHeader("Retry-After", "20");
       return res.status(429).json({ error: "slow down a little" });
     }
 
     const entry = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: randomUUID(),
       name,
       message,
       ts: Date.now(),
-      token: Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10),
+      token: randomBytes(32).toString("hex"),
     };
 
     await redis.lpush(LIST_KEY, JSON.stringify(entry));
@@ -99,13 +104,18 @@ async function handlePost(req, res) {
 
 async function handleDelete(req, res) {
   try {
-    const body = typeof req.body === "string" ? safeParse(req.body) : req.body;
+    const body = parseBody(req);
     const id = body && body.id;
     const token = body && body.token;
-    if (!id || !token) {
+    if (typeof id !== "string" || !id || id.length > 100 || typeof token !== "string" || !token || token.length > 128) {
       return res.status(400).json({ error: "id and token are required" });
     }
 
+    const { success } = await deleteRatelimit.limit(clientIp(req));
+    if (!success) {
+      res.setHeader("Retry-After", "60");
+      return res.status(429).json({ error: "too many delete requests" });
+    }
     const raw = await redis.lrange(LIST_KEY, 0, MAX_STORED - 1);
     const found = raw
       .map((entry) => (typeof entry === "string" ? safeParse(entry) : entry))

@@ -1,3 +1,18 @@
+// Storage may be disabled or full; preferences must never block the interface.
+function readStorage(kind, key) {
+  try { return window[kind].getItem(key); } catch { return null; }
+}
+function writeStorage(kind, key, value) {
+  try { window[kind].setItem(key, value); } catch {}
+}
+
+async function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try { return await fetch(url, { ...options, signal: controller.signal }); }
+  finally { clearTimeout(timeout); }
+}
+
 // TouchTexture class
 class TouchTexture {
   constructor() {
@@ -518,28 +533,16 @@ class App {
     this.gradientBackground.init();
     this.setColorScheme(1);
 
-    this.render();
-    this.tick();
+    this.motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    this.frame = null;
+    this.syncAnimation();
+    this.motionPreference.addEventListener("change", () => this.syncAnimation());
 
     window.addEventListener("resize", () => this.onResize());
     window.addEventListener("mousemove", (ev) => this.onMouseMove(ev));
     window.addEventListener("touchmove", (ev) => this.onTouchMove(ev));
 
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) {
-        this.render();
-      }
-    });
-
-    const wakeUpAnimation = () => {
-      this.render();
-      window.removeEventListener("click", wakeUpAnimation);
-      window.removeEventListener("touchstart", wakeUpAnimation);
-      window.removeEventListener("mousemove", wakeUpAnimation);
-    };
-    window.addEventListener("click", wakeUpAnimation, { once: true });
-    window.addEventListener("touchstart", wakeUpAnimation, { once: true });
-    window.addEventListener("mousemove", wakeUpAnimation, { once: true });
+    document.addEventListener("visibilitychange", () => this.syncAnimation());
   }
 
   onTouchMove(ev) {
@@ -548,6 +551,7 @@ class App {
   }
 
   onMouseMove(ev) {
+    if (this.motionPreference.matches || document.hidden) return;
     this.mouse = {
       x: ev.clientX / window.innerWidth,
       y: 1 - ev.clientY / window.innerHeight
@@ -575,9 +579,20 @@ class App {
     this.update(clampedDelta);
   }
 
-  tick() {
+  syncAnimation() {
+    if (this.frame !== null) cancelAnimationFrame(this.frame);
+    this.frame = null;
+    this.clock.getDelta();
+    if (document.hidden) return;
     this.render();
-    requestAnimationFrame(() => this.tick());
+    if (!this.motionPreference.matches) this.frame = requestAnimationFrame(() => this.tick());
+  }
+
+  tick() {
+    this.frame = null;
+    if (document.hidden || this.motionPreference.matches) return;
+    this.render();
+    this.frame = requestAnimationFrame(() => this.tick());
   }
 
   onResize() {
@@ -585,18 +600,16 @@ class App {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.gradientBackground.onResize(window.innerWidth, window.innerHeight);
+    this.syncAnimation();
   }
 }
 
-// Start the app
-const app = new App();
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
-    app.render();
-  });
-} else {
-  setTimeout(() => app.render(), 0);
+// The decorative background must not prevent the desktop from starting.
+try {
+  new App();
+} catch (error) {
+  document.getElementById("webGLApp")?.remove();
+  console.warn("Animated background unavailable; using the CSS background.");
 }
 
 // GameShelf nav link: animated navigation on plain left-click only
@@ -662,10 +675,14 @@ const osWindowTitles = {
   projects: "PROJECTS.SYS",
   resume: "RESUME.SYS",
   pong: "PONG.EXE",
+  minesweeper: "MINESWEEPER.EXE",
+  solitaire: "SOLITAIRE.EXE",
   thewall: "THE WALL.EXE",
 };
 
+let windowOpener = null;
 function openOsWindow(name) {
+  if (!osWindow.contains(document.activeElement)) windowOpener = document.querySelector(`.os-icon[data-window="${name}"]`) || document.activeElement;
   osViews.forEach((view) =>
     view.classList.toggle("is-active", view.id === `view-${name}`)
   );
@@ -674,6 +691,9 @@ function openOsWindow(name) {
   );
   osWindowTitle.textContent = `BAILEY // ${osWindowTitles[name] || "OS 2.0"}`;
   osWindow.classList.add("is-open");
+  osWindow.inert = false;
+  osWindow.setAttribute("aria-hidden", "false");
+  osWindowClose.focus();
   if (osTaskbarChip) {
     osTaskbarChip.textContent = osWindowTitles[name] || name.toUpperCase();
     osTaskbarChip.hidden = false;
@@ -682,6 +702,9 @@ function openOsWindow(name) {
 
 function closeOsWindow() {
   osWindow.classList.remove("is-open");
+  windowOpener?.focus();
+  osWindow.inert = true;
+  osWindow.setAttribute("aria-hidden", "true");
   osDesktopIcons.forEach((i) => i.classList.remove("is-active"));
   if (osTaskbarChip) osTaskbarChip.hidden = true;
 }
@@ -700,7 +723,8 @@ function minimizeOsWindow() {
   osWindow.addEventListener(
     "animationend",
     () => {
-      osWindow.classList.remove("is-open", "is-minimizing");
+      osWindow.classList.remove("is-minimizing");
+      closeOsWindow();
       osDesktopIcons.forEach((i) => i.classList.remove("is-active"));
       if (osTaskbarChip) osTaskbarChip.hidden = true;
     },
@@ -743,7 +767,7 @@ const osGenieLine = document.getElementById("osGenieLine");
 const osGenieChoiceYes = document.getElementById("osGenieChoiceYes");
 const osGenieChoiceNo = document.getElementById("osGenieChoiceNo");
 let genieRunning = false;
-let genieDismissTimeout = null;
+let genieClosing = false;
 let genieStage = 0;
 
 const GENIE_LINE_ASK = "you sure about that?";
@@ -784,18 +808,10 @@ function spawnGenieSparkles(x, y) {
 function triggerGenieEasterEgg() {
   if (!osGenieOverlay || genieRunning) return;
   genieRunning = true;
+  genieClosing = false;
   genieStage = 0;
 
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  if (prefersReducedMotion) {
-    showOsModal(
-      "THE GENIE",
-      "you sure about that?\n\n> yes, mr. genie. (minimizes the window)\n> wait.. who are you? (nevermind)"
-    );
-    genieRunning = false;
-    return;
-  }
 
   // matches .os-genie-bottle's fixed right/bottom/size in index_style.css
   const cornerX = window.innerWidth - 94;
@@ -804,6 +820,8 @@ function triggerGenieEasterEgg() {
   osGenieFigure.style.setProperty("--gy", `${cornerY - window.innerHeight / 2}px`);
 
   osGenieOverlay.classList.add("is-active");
+  osGenieOverlay.inert = false;
+  osGenieOverlay.setAttribute("aria-hidden", "false");
   osGenieBottle.classList.add("is-visible");
   osGenieFigure.classList.add("is-visible");
   osGenieLine.textContent = "";
@@ -813,37 +831,40 @@ function triggerGenieEasterEgg() {
   osGenieChoiceNo.style.display = "";
   osGenieChoiceNo.textContent = "wait.. who are you?";
 
-  spawnGenieSparkles(cornerX, cornerY);
+  if (!prefersReducedMotion) spawnGenieSparkles(cornerX, cornerY);
 
-  setTimeout(() => osGenieFigure.classList.add("is-centered"), 350);
+  setTimeout(() => { if (!genieClosing) osGenieFigure.classList.add("is-centered"); }, prefersReducedMotion ? 0 : 350);
 
   setTimeout(() => {
     osGenieLine.textContent = GENIE_LINE_ASK;
+    if (!genieRunning || genieClosing) return;
     osGenieDialogue.classList.add("is-visible");
-  }, 1100);
+    osGenieDialogue.inert = false;
+    osGenieChoiceYes.focus();
+  }, prefersReducedMotion ? 0 : 1100);
 
-  // safety net: if she's ignored entirely, quietly dismiss with no side effects
-  genieDismissTimeout = setTimeout(() => resolveGenie(false), 12000);
+  // Leave the choices available until explicitly dismissed.
 }
 
 function advanceGenieToIntro() {
-  clearTimeout(genieDismissTimeout);
   genieStage = 1;
   osGenieDialogue.classList.remove("is-visible");
 
   setTimeout(() => {
+    if (genieClosing) return;
     osGenieLine.textContent = GENIE_LINE_INTRO;
     osGenieChoiceYes.style.display = "none";
     osGenieChoiceNo.textContent = "..oh?";
     osGenieDialogue.classList.add("is-visible");
+    osGenieChoiceNo.focus();
   }, 200);
-
-  genieDismissTimeout = setTimeout(() => resolveGenieBye(), 12000);
 }
 
 function resolveGenie(shouldMinimize) {
-  if (!genieRunning) return;
-  clearTimeout(genieDismissTimeout);
+  if (!genieRunning || genieClosing) return;
+  genieClosing = true;
+  osGenieDialogue.inert = true;
+  osWindowMinimize.focus();
 
   osGenieDialogue.classList.remove("is-visible");
   osGenieFigure.classList.remove("is-centered", "is-visible");
@@ -851,6 +872,8 @@ function resolveGenie(shouldMinimize) {
   setTimeout(() => {
     osGenieBottle.classList.remove("is-visible");
     osGenieOverlay.classList.remove("is-active");
+    osGenieOverlay.inert = true;
+    osGenieOverlay.setAttribute("aria-hidden", "true");
     genieRunning = false;
   }, 500);
 
@@ -860,9 +883,11 @@ function resolveGenie(shouldMinimize) {
 }
 
 function resolveGenieBye() {
-  if (!genieRunning) return;
-  clearTimeout(genieDismissTimeout);
+  if (!genieRunning || genieClosing) return;
+  genieClosing = true;
 
+  osGenieDialogue.inert = true;
+  osWindowMinimize.focus();
   osGenieChoiceNo.style.display = "none";
   osGenieLine.textContent = GENIE_LINE_BYE;
 
@@ -874,6 +899,8 @@ function resolveGenieBye() {
   setTimeout(() => {
     osGenieBottle.classList.remove("is-visible");
     osGenieOverlay.classList.remove("is-active");
+    osGenieOverlay.inert = true;
+    osGenieOverlay.setAttribute("aria-hidden", "true");
     genieRunning = false;
   }, 1700);
 }
@@ -999,15 +1026,18 @@ if (osClock) {
 const osOnlineCount = document.getElementById("osOnlineCount");
 if (osOnlineCount) {
   const PRESENCE_ID_KEY = "bailey-presence-id";
-  let presenceId = sessionStorage.getItem(PRESENCE_ID_KEY);
+  let presenceId = readStorage("sessionStorage", PRESENCE_ID_KEY);
   if (!presenceId) {
     presenceId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-    sessionStorage.setItem(PRESENCE_ID_KEY, presenceId);
+    writeStorage("sessionStorage", PRESENCE_ID_KEY, presenceId);
   }
 
+  let presencePending = false;
   async function sendPresenceHeartbeat() {
+    if (document.hidden || presencePending) return;
+    presencePending = true;
     try {
-      const res = await fetch("/api/presence", {
+      const res = await fetchWithTimeout("/api/presence", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: presenceId }),
@@ -1018,12 +1048,16 @@ if (osOnlineCount) {
         osOnlineCount.textContent = data.count;
       }
     } catch (err) {
-      // silently fail; keep last known count
+      // Keep the last known count during transient failures.
+    } finally {
+      presencePending = false;
     }
   }
 
   sendPresenceHeartbeat();
   setInterval(sendPresenceHeartbeat, 15000);
+  document.addEventListener("visibilitychange", sendPresenceHeartbeat);
+  window.addEventListener("pageshow", sendPresenceHeartbeat);
 
   window.addEventListener("pagehide", () => {
     if (!navigator.sendBeacon) return;
@@ -1034,104 +1068,71 @@ if (osOnlineCount) {
   });
 }
 
-// ---------- cursor system: 5 selectable modes, persisted, default "rainbow" ----------
+// ---------- profile-page cursors: pixel art, glitter, and unapologetic trails ----------
 const cursorTrailLayer = document.getElementById("cursorTrailLayer");
 
 if (cursorTrailLayer) {
-  const CURSOR_MODES = ["arrow", "sparkle", "rainbow", "floppy", "star"];
+  const CURSOR_MODES = ["arrow", "sparkle", "rainbow", "hearts", "floppy", "star"];
   const CURSOR_STORAGE_KEY = "bailey-cursor-mode";
-  let currentCursorMode =
-    localStorage.getItem(CURSOR_STORAGE_KEY) &&
-    CURSOR_MODES.includes(localStorage.getItem(CURSOR_STORAGE_KEY))
-      ? localStorage.getItem(CURSOR_STORAGE_KEY)
-      : "rainbow";
-
-  const rainbowHues = [0, 45, 90, 160, 200, 260, 310];
-  let rainbowIndex = 0;
+  const savedMode = readStorage("localStorage", CURSOR_STORAGE_KEY);
+  let currentCursorMode = CURSOR_MODES.includes(savedMode) ? savedMode : "sparkle";
   let lastTrailSpawn = 0;
+  let particleIndex = 0;
 
+  function clearTrail() { cursorTrailLayer.replaceChildren(); }
   function applyCursorMode(mode) {
-    CURSOR_MODES.forEach((m) => document.body.classList.remove(`cursor-${m}`));
+    if (!CURSOR_MODES.includes(mode)) return;
+    CURSOR_MODES.forEach(m => document.body.classList.remove(`cursor-${m}`));
     document.body.classList.add(`cursor-${mode}`);
     currentCursorMode = mode;
-    localStorage.setItem(CURSOR_STORAGE_KEY, mode);
-
-    document
-      .querySelectorAll(".os-startmenu-item[data-cursor]")
-      .forEach((btn) => {
-        btn.classList.toggle(
-          "is-selected",
-          btn.getAttribute("data-cursor") === mode
-        );
-      });
-  }
-
-  function spawnParticle(x, y, kind) {
-    const el = document.createElement("span");
-    el.style.position = "absolute";
-    el.style.left = "0";
-    el.style.top = "0";
-
-    if (kind === "sparkle") {
-      el.textContent = "✦";
-      el.style.color = "#ffd166";
-      el.style.fontSize = "18px";
-      el.style.textShadow = "0 0 6px rgba(255,209,102,0.8)";
-    } else if (kind === "rainbow") {
-      el.style.width = "10px";
-      el.style.height = "10px";
-      el.style.borderRadius = "50%";
-      el.style.background = `hsl(${rainbowHues[rainbowIndex % rainbowHues.length]}, 90%, 65%)`;
-      el.style.boxShadow = `0 0 8px hsl(${rainbowHues[rainbowIndex % rainbowHues.length]}, 90%, 65%)`;
-      rainbowIndex++;
-    } else if (kind === "burst") {
-      el.textContent = "★";
-      el.style.color = "#c97b5f";
-      el.style.fontSize = "14px";
-    }
-
-    cursorTrailLayer.appendChild(el);
-
-    const dx = (Math.random() - 0.5) * 30;
-    const dy = kind === "burst" ? (Math.random() - 0.5) * 30 : 20 + Math.random() * 10;
-
-    const anim = el.animate(
-      [
-        { transform: `translate(${x}px, ${y}px) scale(1)`, opacity: 1 },
-        {
-          transform: `translate(${x + dx}px, ${y + dy}px) scale(0.4)`,
-          opacity: 0,
-        },
-      ],
-      { duration: 650, easing: "ease-out", fill: "forwards" }
-    );
-
-    anim.onfinish = () => el.remove();
-  }
-
-  document.addEventListener("mousemove", (e) => {
-    if (osReduceMotion.matches) return;
-    if (currentCursorMode !== "sparkle" && currentCursorMode !== "rainbow") return;
-    const now = performance.now();
-    if (now - lastTrailSpawn < 22) return;
-    lastTrailSpawn = now;
-    spawnParticle(e.clientX, e.clientY, currentCursorMode);
-  });
-
-  document.addEventListener("click", (e) => {
-    if (osReduceMotion.matches) return;
-    if (currentCursorMode !== "star") return;
-    for (let i = 0; i < 5; i++) {
-      spawnParticle(e.clientX, e.clientY, "burst");
-    }
-  });
-
-  applyCursorMode(currentCursorMode);
-
-  document.querySelectorAll(".os-startmenu-item[data-cursor]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      applyCursorMode(btn.getAttribute("data-cursor"));
+    writeStorage("localStorage", CURSOR_STORAGE_KEY, mode);
+    clearTrail();
+    document.querySelectorAll("[data-cursor]").forEach(button => {
+      const active = button.dataset.cursor === mode;
+      button.classList.toggle("is-selected", active);
+      button.setAttribute("aria-pressed", String(active));
     });
+  }
+
+  function spawnParticle(x, y, kind, burst = false) {
+    if (cursorTrailLayer.childElementCount >= 60) cursorTrailLayer.firstElementChild.remove();
+    const el = document.createElement("span");
+    el.className = `profile-particle particle-${kind}`;
+    const index = particleIndex++;
+    const size = kind === "hearts" ? 12 + index % 3 * 4 : 10 + index % 3 * 3;
+    if (kind !== "rainbow") { el.style.width = `${size}px`; el.style.height = `${size}px`; }
+    if (kind === "sparkle" || kind === "star") el.style.filter = `hue-rotate(${index % 3 * 35}deg)`;
+    cursorTrailLayer.appendChild(el);
+    const dx = burst ? (Math.random() - .5) * 80 : kind === "rainbow" ? -10 : (Math.random() - .5) * 24;
+    const dy = burst ? (Math.random() - .5) * 80 : kind === "hearts" ? -42 : kind === "rainbow" ? 10 : 30;
+    const base = `translate(${Math.round(x + 5)}px, ${Math.round(y + 7)}px)`;
+    const animation = el.animate([
+      { transform: `${base} scale(1)`, opacity: 1 },
+      { offset: .5, opacity: 1 },
+      { transform: `translate(${Math.round(x + dx)}px, ${Math.round(y + dy)}px) scale(.25)`, opacity: 0 },
+    ], { duration: kind === "hearts" ? 1000 : 650, easing: "steps(6, end)", fill: "forwards" });
+    animation.onfinish = () => el.remove();
+  }
+
+  document.addEventListener("pointermove", event => {
+    if (event.pointerType === "touch" || osReduceMotion.matches || document.hidden) return;
+    if (!["sparkle", "rainbow", "hearts", "star"].includes(currentCursorMode)) return;
+    const now = performance.now();
+    if (now - lastTrailSpawn < (currentCursorMode === "rainbow" ? 25 : 55)) return;
+    lastTrailSpawn = now;
+    spawnParticle(event.clientX, event.clientY, currentCursorMode);
+  });
+  document.addEventListener("pointerdown", event => {
+    if (event.pointerType === "touch" || event.button !== 0 || osReduceMotion.matches) return;
+    if (!["star", "hearts", "sparkle"].includes(currentCursorMode)) return;
+    for (let i = 0; i < 6; i++) spawnParticle(event.clientX, event.clientY, currentCursorMode, true);
+  });
+  osReduceMotion.addEventListener("change", clearTrail);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) clearTrail(); });
+  document.documentElement.addEventListener("pointerleave", clearTrail);
+  applyCursorMode(currentCursorMode);
+  document.querySelectorAll("[data-cursor]").forEach(button => {
+    button.addEventListener("click", () => applyCursorMode(button.dataset.cursor));
   });
 }
 
@@ -1157,27 +1158,6 @@ if (osMenuButton && osStartMenu) {
     }
   });
 
-  // nostalgia joke entries: a little wink, nothing more
-  const startmenuJokeTitles = {
-    solitaire: "SOLITAIRE.EXE",
-    minesweeper: "MINESWEEPER.EXE",
-  };
-
-  const startmenuJokes = {
-    solitaire: [
-      "solitaire.exe has stopped responding.\n(as it should, it's 2001)",
-      "You win! ...jk, the cards were never real.",
-      "52 cards, 0 of them exist.",
-      "This game requires Windows 98 or a time machine.",
-    ],
-    minesweeper: [
-      "minesweeper.exe has stopped responding.\n(as it should, it's 2001)",
-      "You clicked a mine. There were no mines. You still lost.",
-      "Flag placed. Nothing happened. That's the game.",
-      "Loading... loading... this is the whole game.",
-    ],
-  };
-
   // Programs launched from the start menu
   document.querySelectorAll(".os-startmenu-item[data-program]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -1185,12 +1165,9 @@ if (osMenuButton && osStartMenu) {
       osStartMenu.classList.remove("is-open");
       osMenuButton.classList.remove("is-open");
 
-      if ((program === "pong" || program === "thewall") && typeof openOsWindow === "function") {
+      if (osWindowTitles[program]) {
         openOsWindow(program);
-      } else {
-        const options = startmenuJokes[program] || [`${program}.exe has stopped responding.\n(as it should, it's 2001)`];
-        const message = options[Math.floor(Math.random() * options.length)];
-        showOsModal(startmenuJokeTitles[program] || "SYSTEM", message);
+        windowOpener = osMenuButton;
       }
     });
   });
@@ -1202,16 +1179,25 @@ const osModalTitle = document.getElementById("osModalTitle");
 const osModalBody = document.getElementById("osModalBody");
 const osModalClose = document.getElementById("osModalClose");
 
+let modalOpener = null;
 function showOsModal(title, body) {
   if (!osModal) return;
   osModalTitle.textContent = title;
   osModalBody.textContent = body;
+  modalOpener = document.activeElement.closest(".os-menubar-item")?.querySelector(".os-menubar-label") ||
+    (osStartMenu.contains(document.activeElement) ? osMenuButton : document.activeElement);
   osModal.classList.add("is-open");
+  osModal.inert = false;
+  osModal.setAttribute("aria-hidden", "false");
+  osModalClose.focus();
 }
 
 function hideOsModal() {
   if (!osModal) return;
   osModal.classList.remove("is-open");
+  modalOpener?.focus();
+  osModal.inert = true;
+  osModal.setAttribute("aria-hidden", "true");
 }
 
 if (osModal) {
@@ -1220,7 +1206,7 @@ if (osModal) {
     if (e.target === osModal) hideOsModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") hideOsModal();
+    if (e.key === "Escape" && osModal.classList.contains("is-open")) hideOsModal();
   });
 }
 
@@ -1384,6 +1370,9 @@ if (wallFeed && wallForm && wallView) {
   const wallName = document.getElementById("thewallName");
   const wallMessage = document.getElementById("thewallMessage");
   const wallWebsite = document.getElementById("thewallWebsite");
+  const wallStatus = document.getElementById("thewallStatus");
+  const setWallStatus = (message) => { wallStatus.textContent = message; };
+  let fetchPending = false;
   let knownIds = new Set();
   let hasLoadedOnce = false;
 
@@ -1461,17 +1450,21 @@ if (wallFeed && wallForm && wallView) {
         if (!id || !token) return;
         btn.disabled = true;
         try {
-          const res = await fetch("/api/messages", {
+          const res = await fetchWithTimeout("/api/messages", {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id, token }),
           });
+          if (!res.ok) throw new Error(res.status === 429 ? "Too many requests. Please wait and retry." : "Could not delete this post. Please retry.");
           if (res.ok) {
+            setWallStatus("Post deleted.");
             forgetMyToken(id);
             hasLoadedOnce = false;
             await fetchMessages();
           }
         } catch (err) {
+          setWallStatus(err.message || "Could not delete this post. Please retry.");
+        } finally {
           btn.disabled = false;
         }
       });
@@ -1479,12 +1472,14 @@ if (wallFeed && wallForm && wallView) {
   }
 
   async function fetchMessages() {
+    if (fetchPending || document.hidden) return;
+    fetchPending = true;
     try {
-      const res = await fetch("/api/messages");
-      if (!res.ok) return;
+      const res = await fetchWithTimeout("/api/messages");
+      if (!res.ok) throw new Error("Could not load the board.");
       const data = await res.json();
       const messages = data.messages || [];
-      const ids = messages.map((m) => m.id).join(",");
+      if (wallStatus.textContent === "Could not refresh the board. Retrying shortly.") setWallStatus("");
       const currentIds = new Set(messages.map((m) => m.id));
       const isSame =
         currentIds.size === knownIds.size &&
@@ -1495,11 +1490,13 @@ if (wallFeed && wallForm && wallView) {
         knownIds = currentIds;
         hasLoadedOnce = true;
       }
-      void ids;
     } catch (err) {
       if (!hasLoadedOnce) {
         wallFeed.innerHTML = '<div class="os-thewall-empty">couldn\'t reach the board — try again in a bit</div>';
       }
+      setWallStatus("Could not refresh the board. Retrying shortly.");
+    } finally {
+      fetchPending = false;
     }
   }
 
@@ -1510,9 +1507,10 @@ if (wallFeed && wallForm && wallView) {
 
     const submitBtn = wallForm.querySelector(".os-thewall-submit");
     submitBtn.disabled = true;
+    setWallStatus("Posting…");
 
     try {
-      const res = await fetch("/api/messages", {
+      const res = await fetchWithTimeout("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1521,15 +1519,17 @@ if (wallFeed && wallForm && wallView) {
           website: wallWebsite.value,
         }),
       });
+      if (!res.ok) throw new Error(res.status === 429 ? "Please wait 20 seconds before posting again." : "Could not post your message. Please retry.");
       if (res.ok) {
         const data = await res.json();
+        setWallStatus("Message posted.");
         if (data.entry && data.token) saveMyToken(data.entry.id, data.token);
         wallMessage.value = "";
         hasLoadedOnce = false;
         await fetchMessages();
       }
     } catch (err) {
-      // silently fail; user can retry
+      setWallStatus(err.message || "Could not post your message. Please retry.");
     } finally {
       submitBtn.disabled = false;
     }
@@ -1537,10 +1537,14 @@ if (wallFeed && wallForm && wallView) {
 
   // Poll only while the thewall window is actually open and visible
   setInterval(() => {
-    if (wallView.classList.contains("is-active") && osWindow.classList.contains("is-open")) {
+    if (!document.hidden && wallView.classList.contains("is-active") && osWindow.classList.contains("is-open")) {
       fetchMessages();
     }
   }, 8000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && wallView.classList.contains("is-active") && osWindow.classList.contains("is-open")) fetchMessages();
+  });
 
   // Fetch immediately the first time thewall is opened, from either the
   // desktop icon (data-window) or the start menu (data-program)
@@ -1552,3 +1556,46 @@ if (wallFeed && wallForm && wallView) {
       });
     });
 }
+
+// Keep animated menus' accessibility state synchronized with their CSS state.
+function syncDisclosure(surface, owner, openClass, control) {
+  const sync = () => {
+    const open = owner.classList.contains(openClass);
+    surface.inert = !open;
+    surface.setAttribute("aria-hidden", String(!open));
+    control?.setAttribute("aria-expanded", String(open));
+  };
+  sync();
+  new MutationObserver(sync).observe(owner, { attributes: true, attributeFilter: ["class"] });
+}
+syncDisclosure(osStartMenu, osStartMenu, "is-open", osMenuButton);
+document.querySelectorAll(".os-menubar-item").forEach((item) => {
+  syncDisclosure(item.querySelector(".os-menubar-dropdown"), item, "is-open", item.querySelector(".os-menubar-label"));
+});
+
+// Modal dialogs contain keyboard focus; ordinary desktop windows stay nonmodal.
+document.addEventListener("keydown", (event) => {
+  const dialog = osModal.classList.contains("is-open") ? osModal :
+    (genieRunning && !osGenieDialogue.inert ? osGenieDialogue : null);
+  if (dialog && event.key === "Tab") {
+    const controls = [...dialog.querySelectorAll('button, a[href], input, textarea, [tabindex="0"]')]
+      .filter((el) => !el.disabled && el.style.display !== "none");
+    const first = controls[0], last = controls[controls.length - 1];
+    if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+      event.preventDefault(); last?.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+      event.preventDefault(); first?.focus();
+    }
+  }
+  if (event.key !== "Escape") return;
+  if (genieRunning) { resolveGenie(false); return; }
+  if (osStartMenu.classList.contains("is-open")) {
+    osStartMenu.classList.remove("is-open");
+    osMenuButton.classList.remove("is-open");
+    osMenuButton.focus();
+  }
+  document.querySelectorAll(".os-menubar-item.is-open").forEach((item) => {
+    item.classList.remove("is-open");
+    item.querySelector(".os-menubar-label").focus();
+  });
+});

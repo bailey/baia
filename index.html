@@ -1,4 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bailey Brooks</title>
 <meta name="description" content="Bailey Brooks — 3D artist and developer.">
 <meta property="og:title" content="Bailey Brooks">
@@ -16,25 +20,24 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <link rel="icon" type="image/x-icon" href="assets/planet.png">
 
-<div class="cursor-trail-layer" id="cursorTrailLayer" aria-hidden="true"></div>
-
-<head>
     <script async src="https://us.umami.is/script.js" data-website-id="2905a2ba-9957-46f5-9196-a53624d26687"></script>
     <script defer src="https://cdn.vercel-analytics.com/v1/web.js"></script>
 </head>
+<body>
+<div class="cursor-trail-layer" id="cursorTrailLayer" aria-hidden="true"></div>
 
 <!-- top menu bar, Lisa-inspired but glassed to match the rest of the OS -->
 <div class="os-menubar" id="osMenuBar">
   <div class="os-menubar-logo" aria-hidden="true"><img src="assets/planet.png" alt=""></div>
   <div class="os-menubar-item" data-menubar="bailey">
     <button class="os-menubar-label" type="button">BAILEY</button>
-    <div class="os-menubar-dropdown">
+    <div class="os-menubar-dropdown" aria-hidden="true" inert>
       <button class="os-startmenu-item" type="button" data-joke="about">About This Site...</button>
     </div>
   </div>
   <div class="os-menubar-item" data-menubar="edit">
     <button class="os-menubar-label" type="button">EDIT</button>
-    <div class="os-menubar-dropdown">
+    <div class="os-menubar-dropdown" aria-hidden="true" inert>
       <button class="os-startmenu-item" type="button" data-joke="cut">Cut</button>
       <button class="os-startmenu-item" type="button" data-joke="copy">Copy</button>
       <button class="os-startmenu-item" type="button" data-joke="paste">Paste</button>
@@ -42,17 +45,18 @@
   </div>
   <div class="os-menubar-item" data-menubar="cursor">
     <button class="os-menubar-label" type="button">CURSOR</button>
-    <div class="os-menubar-dropdown">
-      <button class="os-startmenu-item" type="button" data-cursor="arrow">➤ pixel arrow</button>
-      <button class="os-startmenu-item" type="button" data-cursor="sparkle">✦ sparkle trail</button>
-      <button class="os-startmenu-item" type="button" data-cursor="rainbow">◆ rainbow trail</button>
-      <button class="os-startmenu-item" type="button" data-cursor="floppy">💾 floppy disk</button>
-      <button class="os-startmenu-item" type="button" data-cursor="star">★ star wand</button>
+    <div class="os-menubar-dropdown" aria-hidden="true" inert>
+      <button class="os-startmenu-item" type="button" data-cursor="arrow">↖ windows 98</button>
+      <button class="os-startmenu-item" type="button" data-cursor="sparkle">✧ glitter angel</button>
+      <button class="os-startmenu-item" type="button" data-cursor="rainbow">☆ rainbow comet</button>
+      <button class="os-startmenu-item" type="button" data-cursor="hearts">♥ pop punk hearts</button>
+      <button class="os-startmenu-item" type="button" data-cursor="floppy">▣ floppy disk</button>
+      <button class="os-startmenu-item" type="button" data-cursor="star">★ magic wand</button>
     </div>
   </div>
   <div class="os-menubar-item" data-menubar="help">
     <button class="os-menubar-label" type="button">HELP</button>
-    <div class="os-menubar-dropdown">
+    <div class="os-menubar-dropdown" aria-hidden="true" inert>
       <button class="os-startmenu-item" type="button" data-joke="help">You're On Your Own</button>
     </div>
   </div>
@@ -84,7 +88,7 @@
 </div>
 
 <!-- the one floating window, hidden until an icon opens it -->
-<div class="os-window" id="osWindow">
+<div class="os-window" id="osWindow" role="dialog" aria-labelledby="osWindowTitle" aria-hidden="true" inert>
   <div class="os-titlebar">
     <div class="os-titlebar-buttons">
       <button class="os-btn os-btn-close" id="osWindowClose" type="button" aria-label="Close window"></button>
@@ -151,6 +155,31 @@
       </div>
     </section>
 
+    <section class="os-view os-view-fill desktop-game" id="view-minesweeper" aria-label="Minesweeper">
+      <div class="game-toolbar">
+        <h2>MINESWEEPER</h2>
+        <span id="mineCounter" class="game-counter"></span>
+        <button type="button" id="mineNew">New field</button>
+        <button type="button" id="mineFlag" aria-pressed="false">⚑ Flag mode: off</button>
+      </div>
+      <p class="game-instructions">9 × 9 · 10 mines. Reveal every safe square. Right-click or press F to flag; on touch, turn on flag mode. Arrow keys move between squares.</p>
+      <p class="game-status" id="mineStatus" role="status" aria-live="polite"></p>
+      <div class="mine-board" id="mineBoard" role="group" aria-label="Mine field"></div>
+    </section>
+
+    <section class="os-view os-view-fill desktop-game solitaire-game" id="view-solitaire" aria-label="Solitaire">
+      <div class="game-toolbar">
+        <h2>SOLITAIRE</h2>
+        <span id="solitaireMoves" class="game-counter"></span>
+        <button type="button" id="solitaireNew">New deal</button>
+        <button type="button" id="solitaireUndo">Undo</button>
+        <button type="button" id="solitaireHome">Send home</button>
+      </div>
+      <p class="game-instructions">Draw one · unlimited passes. Select a card, then its destination. Columns descend in alternating colors; only kings fill empty columns. Build the four home piles from ace to king by suit. Tap a selected card again to cancel.</p>
+      <p class="game-status" id="solitaireStatus" role="status" aria-live="polite"></p>
+      <div class="solitaire-table" id="solitaireTable" role="group" aria-label="Solitaire table"></div>
+    </section>
+
     <!-- pong.exe: hidden for now (needs the Godot source re-exported without
          thread support; the current build requires cross-origin-isolation
          headers we've since removed). Restore the start-menu button below and
@@ -182,6 +211,7 @@
           class="os-thewall-name"
           type="text"
           id="thewallName"
+          aria-label="Name"
           placeholder="name"
           maxlength="24"
           autocomplete="off"
@@ -190,6 +220,7 @@
           <textarea
             class="os-thewall-message"
             id="thewallMessage"
+            aria-label="Message"
             placeholder="type a message..."
             maxlength="280"
             rows="2"
@@ -197,6 +228,7 @@
           ></textarea>
           <button class="os-thewall-submit" type="submit">post &gt;</button>
         </div>
+        <p id="thewallStatus" class="os-thewall-status" role="status" aria-live="polite"></p>
       </form>
     </section>
 
@@ -204,7 +236,7 @@
 </div>
 
 <!-- start menu -->
-<div class="os-startmenu" id="osStartMenu">
+<div class="os-startmenu" id="osStartMenu" aria-hidden="true" inert>
   <div class="os-startmenu-banner" aria-hidden="true">
     <span class="os-startmenu-banner-text">BAILEY // OS 2.0</span>
   </div>
@@ -239,7 +271,7 @@
 </div>
 
 <!-- generic in-site modal, replaces browser alert() for menu-bar jokes -->
-<div class="os-modal" id="osModal" aria-hidden="true">
+<div class="os-modal" id="osModal" aria-hidden="true" inert>
   <div class="os-modal-panel" role="dialog" aria-modal="true" aria-labelledby="osModalTitle">
     <div class="os-modal-titlebar">
       <div class="os-modal-title" id="osModalTitle">SYSTEM</div>
@@ -250,10 +282,10 @@
 </div>
 
 <!-- titlebar minimize easter egg: a genie pops out of a bottle and gets cold feet -->
-<div class="os-genie-overlay" id="osGenieOverlay" aria-hidden="true">
+<div class="os-genie-overlay" id="osGenieOverlay" aria-hidden="true" inert>
   <div class="os-genie-bottle" id="osGenieBottle"></div>
   <div class="os-genie-figure" id="osGenieFigure"></div>
-  <div class="os-genie-dialogue" id="osGenieDialogue">
+  <div class="os-genie-dialogue" id="osGenieDialogue" role="dialog" aria-modal="true" aria-labelledby="osGenieLine" inert>
     <div class="os-genie-dialogue-inner">
       <div class="os-genie-line" id="osGenieLine"></div>
       <div class="os-genie-choice-list">
@@ -269,7 +301,7 @@
 
 <!-- taskbar sits on the desktop itself now, not inside the window -->
 <div class="os-taskbar">
-  <button class="os-menu-pill" id="osMenuButton" type="button"><img class="os-menu-pill-glyph" src="assets/icons/menu-cloud.png" alt="" width="16" height="16">MENU</button>
+  <button class="os-menu-pill" id="osMenuButton" type="button" aria-expanded="false" aria-controls="osStartMenu"><img class="os-menu-pill-glyph" src="assets/icons/menu-cloud.png" alt="" width="16" height="16">MENU</button>
   <div class="os-taskbar-chip" id="osTaskbarChip" hidden></div>
   <div class="os-tray">
     <a class="os-tray-icon" data-umami-event="open-linkedin" href="https://linkedin.com/in/baileyebrooks"><img src="/assets/li.png" alt="LinkedIn"></a>
@@ -283,4 +315,7 @@
 <div class="gameshelf-transition" id="gameshelfTransition" aria-hidden="true"></div>
 
 <script defer src="script.js"></script>
+<script defer src="games/engine.js"></script>
+<script defer src="games/ui.js"></script>
 </body>
+</html>
